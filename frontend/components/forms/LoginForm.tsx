@@ -6,9 +6,9 @@ import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 
 import { setToken } from "@/utils/auth";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import PasswordInput from "@/components/ui/PasswordInput";
+import { Button } from "@/components/ui/Button";
+import Input  from "@/components/ui/Input";
+import PasswordInput  from "@/components/ui/PasswordInput";
 import { getApiErrorMessage, login } from "@/services/auth.service";
 
 export default function LoginForm() {
@@ -69,9 +69,12 @@ export default function LoginForm() {
       />
 
       <div className="pt-1">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Logging in..." : "Log in"}
-        </Button>
+      <Button
+  type="submit"
+  className="bg-blue-600 text-white px-4 py-2 rounded"
+>
+  Login
+</Button>
       </div>
     </form>
   );

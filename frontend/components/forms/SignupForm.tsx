@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import PasswordInput from "@/components/ui/PasswordInput";
+import { Button } from "@/components/ui/Button";
+import  Input  from "@/components/ui/Input";
+import  PasswordInput  from "@/components/ui/PasswordInput";
 import { getApiErrorMessage, signup } from "@/services/auth.service";
 
 export default function SignupForm() {
@@ -75,11 +75,11 @@ export default function SignupForm() {
         variant="signup"
       />
 
-      <div className="pt-1">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creating account..." : "Create account"}
-        </Button>
-      </div>
+<div className="pt-1">
+  <Button className="bg-blue-600 text-white px-4 py-2 rounded">
+    Signup
+  </Button>
+</div>
     </form>
   );
 }
