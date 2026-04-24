@@ -4,11 +4,14 @@ const express = require("express");
 const cors = require("cors");
 
 const authRoutes = require("./routes/auth.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
+const tripRoutes = require("./routes/trip.routes");
 const { prisma } = require("./db/prisma");
 const { fail } = require("./utils/respond");
 
 const app = express();
 
+/* ---------------- CORS ---------------- */
 const allowedOrigins = (
   process.env.FRONTEND_URL || "http://localhost:3000,http://localhost:3001"
 )
@@ -19,7 +22,6 @@ const allowedOrigins = (
 app.use(
   cors({
     origin(origin, callback) {
-      // Allow non-browser tools (curl/postman) and explicit frontend origins.
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
@@ -29,6 +31,8 @@ app.use(
     credentials: true,
   })
 );
+
+/* ---------------- Middleware ---------------- */
 app.use(express.json({ limit: "1mb" }));
 
 app.use((req, _res, next) => {
@@ -36,32 +40,29 @@ app.use((req, _res, next) => {
   next();
 });
 
-app.use("/api/auth", (req, _res, next) => {
-  const hasPassword = typeof req.body?.password === "string";
-  console.log(`[AUTH] ${req.method} ${req.originalUrl}`, {
-    ...req.body,
-    password: hasPassword ? "***" : undefined,
-  });
-  next();
-});
-
+/* ---------------- Routes ---------------- */
 app.get("/api/health", (_req, res) => {
   res.json({ success: true, message: "ok" });
 });
 
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);            // ✅ ADD (you missed this)
+app.use("/api/dashboard", dashboardRoutes); // ✅ KEEP
+app.use("/api/trips", tripRoutes);
+/* ---------------- 404 (MUST BE LAST) ---------------- */
+app.use((req, res) => {
+  console.log("❌ Not Found:", req.originalUrl);
+  return fail(res, 404, "Not found");
+});
 
-// 404
-app.use((_req, res) => fail(res, 404, "Not found"));
-
-// Error handler
-// eslint-disable-next-line no-unused-vars
+/* ---------------- Error Handler ---------------- */
 app.use((err, _req, res, _next) => {
   console.error(err);
   return fail(res, 500, err?.message || "Internal server error");
 });
 
+/* ---------------- Server ---------------- */
 const PORT = Number(process.env.PORT || 5000);
+
 async function startServer() {
   try {
     await prisma.$connect();

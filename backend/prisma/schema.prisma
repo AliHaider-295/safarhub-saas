@@ -13,4 +13,49 @@ model User {
   email        String   @unique
   password     String
   createdAt    DateTime @default(now())
+
+  buses        Bus[]
+  routes       Route[]
+  trips        Trip[]
+}
+
+model Bus {
+  id        String   @id @default(uuid())
+  number    String
+  capacity  Int
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  trips     Trip[]
+}
+
+model Route {
+  id        String   @id @default(uuid())
+  from      String
+  to        String
+  distance  Int
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  trips     Trip[]
+}
+
+model Trip {
+  id        String   @id @default(uuid())
+  date      DateTime
+  income    Float
+  expense   Float
+  createdAt DateTime @default(now())
+
+  busId     String
+  routeId   String
+  userId    String
+
+  bus       Bus     @relation(fields: [busId], references: [id])
+  route     Route   @relation(fields: [routeId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
 }
