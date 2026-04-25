@@ -61,13 +61,15 @@ export default function DashboardCard({
       </div>
 
       <div
-        className={cn(
-          "p-2 rounded-lg bg-white shadow-sm",
-          current.icon
-        )}
-      >
-        {icon}
-      </div>
+  className={cn(
+    "p-2 rounded-lg bg-white shadow-sm",
+    current.icon
+  )}
+>
+  <div className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6">
+    {icon}
+  </div>
+</div>
     </div>
   );
 }

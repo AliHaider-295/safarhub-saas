@@ -10,8 +10,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+type ChartData = {
+  day: string;
+  income: number;
+  expense: number;
+};
+
 export default function RevenueChart() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<ChartData[]>([]);
 
   useEffect(() => {
     fetch("http://localhost:5000/api/dashboard/chart")
@@ -20,22 +26,40 @@ export default function RevenueChart() {
   }, []);
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm h-full">
-      <h2 className="mb-4 font-semibold">Weekly Income vs Expense</h2>
+    <div className="bg-white p-4 rounded-xl shadow-sm w-full">
+      <h2 className="mb-3 text-sm sm:text-base font-semibold">
+        Weekly Income vs Expense
+      </h2>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data}>
-          <XAxis dataKey="day" />
-          <YAxis />
-          <Tooltip />
+      {/* ✅ Responsive Height */}
+      <div className="w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[360px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data}>
+            <XAxis
+              dataKey="day"
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis
+              tick={{ fontSize: 12 }}
+            />
+            <Tooltip />
 
-          {/* Income */}
-          <Bar dataKey="income" fill="#22c55e" radius={[4, 4, 0, 0]} />
+            {/* ✅ Income */}
+            <Bar
+              dataKey="income"
+              fill="#22c55e"
+              radius={[4, 4, 0, 0]}
+            />
 
-          {/* Expense */}
-          <Bar dataKey="expense" fill="#ef4444" radius={[4, 4, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+            {/* ✅ Expense */}
+            <Bar
+              dataKey="expense"
+              fill="#ef4444"
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
