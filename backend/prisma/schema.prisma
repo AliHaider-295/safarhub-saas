@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BusStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
 model User {
   id           String   @id @default(uuid())
   companyName  String
@@ -20,15 +26,20 @@ model User {
 }
 
 model Bus {
-  id        String   @id @default(uuid())
-  number    String
-  capacity  Int
-  createdAt DateTime @default(now())
+  id          String     @id @default(uuid())
+  busNumber   String
+  type        String
+  capacity    Int
+  status      BusStatus  @default(ACTIVE)
+  driverName  String
+  createdAt   DateTime   @default(now())
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
 
-  trips     Trip[]
+  trips       Trip[]     // ✅ IMPORTANT
+
+  @@index([userId])
 }
 
 model Route {
@@ -42,6 +53,8 @@ model Route {
   user      User     @relation(fields: [userId], references: [id])
 
   trips     Trip[]
+
+  @@index([userId])
 }
 
 model Trip {
@@ -58,4 +71,8 @@ model Trip {
   bus       Bus     @relation(fields: [busId], references: [id])
   route     Route   @relation(fields: [routeId], references: [id])
   user      User    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([busId])
+  @@index([routeId])
 }

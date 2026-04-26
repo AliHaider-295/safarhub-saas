@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import BusesCard from "@/components/buses/BusesCard";
 import BusesTable from "@/components/buses/BusesTable";
@@ -17,9 +17,30 @@ import {
 } from "lucide-react";
 
 export default function BusesPage() {
-
-  // ✅ MUST be inside component
   const [openModal, setOpenModal] = useState(false);
+  const [buses, setBuses] = useState<any[]>([]);
+
+  // ✅ Fetch buses from backend
+  const fetchBuses = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/buses");
+      const data = await res.json();
+      setBuses(data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBuses();
+  }, []);
+
+  // ✅ Stats calculation (dynamic cards)
+  const total = buses.length;
+  const active = buses.filter(b => b.status === "ACTIVE").length;
+  const maintenance = buses.filter(b => b.status === "MAINTENANCE").length;
+  const inactive = buses.filter(b => b.status === "INACTIVE").length;
+  const capacity = buses.reduce((sum, b) => sum + b.capacity, 0);
 
   return (
     <main className="p-4 space-y-4">
@@ -36,32 +57,34 @@ export default function BusesPage() {
         </button>
       </div>
 
-      {/* Cards */}
+      {/* Cards (NOW DYNAMIC) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        <BusesCard title="Total Buses" value="24" description="All buses" icon={<Bus />} />
-        <BusesCard title="Active" value="18" description="Running" icon={<CheckCircle />} type="active" />
-        <BusesCard title="Maintenance" value="3" description="Under repair" icon={<AlertTriangle />} type="maintenance" />
-        <BusesCard title="Inactive" value="3" description="Stopped" icon={<XCircle />} type="inactive" />
-        <BusesCard title="Capacity" value="1280" description="Seats" icon={<Users />} type="capacity" />
+        <BusesCard title="Total Buses" value={total.toString()} description="All buses" icon={<Bus />} />
+        <BusesCard title="Active" value={active.toString()} description="Running" icon={<CheckCircle />} type="active" />
+        <BusesCard title="Maintenance" value={maintenance.toString()} description="Under repair" icon={<AlertTriangle />} type="maintenance" />
+        <BusesCard title="Inactive" value={inactive.toString()} description="Stopped" icon={<XCircle />} type="inactive" />
+        <BusesCard title="Capacity" value={capacity.toString()} description="Seats" icon={<Users />} type="capacity" />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="h-[300px]">
-          <BusStatusChart />
-        </div>
-        <div className="h-[300px]">
-          <FleetChart />
-        </div>
+      <div className="w-full h-[300px] min-w-0">
+  <BusStatusChart buses={buses} />
+</div>
+
+<div className="w-full h-[300px] min-w-0">
+  <FleetChart buses={buses} />
+</div>
       </div>
 
       {/* Table */}
-      <BusesTable />
+      <BusesTable buses={buses} fetchBuses={fetchBuses} />
 
-      {/* ✅ Modal */}
+      {/* Modal */}
       <AddBusModal
         open={openModal}
         onClose={() => setOpenModal(false)}
+        fetchBuses={fetchBuses} // 🔥 IMPORTANT
       />
 
     </main>

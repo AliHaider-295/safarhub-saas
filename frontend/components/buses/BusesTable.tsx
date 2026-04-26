@@ -3,66 +3,24 @@
 import { useState } from "react";
 import { MoreVertical } from "lucide-react";
 
-type Bus = {
-  id: number;
-  number: string;
-  type: string;
-  capacity: number;
-  status: "active" | "maintenance" | "inactive";
-  driver: string;
-  lastTrip: string;
-};
-
-const mockData: Bus[] = [
-  {
-    id: 1,
-    number: "BUS-101",
-    type: "AC",
-    capacity: 50,
-    status: "active",
-    driver: "Ali Khan",
-    lastTrip: "Karachi → Lahore",
-  },
-  {
-    id: 2,
-    number: "BUS-102",
-    type: "Non-AC",
-    capacity: 40,
-    status: "maintenance",
-    driver: "Ahmed Raza",
-    lastTrip: "Islamabad → Multan",
-  },
-  {
-    id: 3,
-    number: "BUS-103",
-    type: "AC",
-    capacity: 45,
-    status: "inactive",
-    driver: "Usman Ali",
-    lastTrip: "Lahore → Faisalabad",
-  },
-  // 👉 duplicate for testing pagination
-  ...Array.from({ length: 12 }, (_, i) => ({
-    id: i + 4,
-    number: `BUS-${200 + i}`,
-    type: "AC",
-    capacity: 50,
-    status: i % 2 === 0 ? "active" : "inactive",
-    driver: "Driver " + i,
-    lastTrip: "Route " + i,
-  })),
-];
-
-export default function BusesTable() {
+export default function BusesTable({
+  buses,
+  fetchBuses,
+}: {
+  buses: any[];
+  fetchBuses: () => void;
+}) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
   const rowsPerPage = 5;
 
-  // 🔍 Filter
-  const filtered = mockData.filter((bus) =>
-    bus.number.toLowerCase().includes(search.toLowerCase())
-  );
+  // 🔍 Filter (updated field name)
+  const filtered = buses.filter((bus) => {
+    const name = bus.busNumber ?? "";
+    console.log("Buses data:", buses);
+    return name.toLowerCase().includes(search.toLowerCase());
+  });
 
   // 📄 Pagination
   const totalPages = Math.ceil(filtered.length / rowsPerPage);
@@ -72,17 +30,26 @@ export default function BusesTable() {
     page * rowsPerPage
   );
 
-  // 🎨 Status color
+  // 🎨 Status styles (UPDATED for enum)
   const statusStyles = {
-    active: "bg-green-100 text-green-700",
-    maintenance: "bg-yellow-100 text-yellow-700",
-    inactive: "bg-red-100 text-red-700",
+    ACTIVE: "bg-green-100 text-green-700",
+    MAINTENANCE: "bg-yellow-100 text-yellow-700",
+    INACTIVE: "bg-red-100 text-red-700",
+  };
+
+  // ❌ Delete bus
+  const handleDelete = async (id: string) => {
+    await fetch(`http://localhost:5000/api/buses/${id}`, {
+      method: "DELETE",
+    });
+
+    fetchBuses(); // refresh
   };
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm">
 
-      {/* 🔹 Header */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h2 className="font-semibold">All Buses</h2>
 
@@ -98,7 +65,7 @@ export default function BusesTable() {
         />
       </div>
 
-      {/* 🔹 Table */}
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[700px]">
 
@@ -109,7 +76,6 @@ export default function BusesTable() {
               <th className="text-left">Capacity</th>
               <th className="text-left">Status</th>
               <th className="text-left">Driver</th>
-              <th className="text-left">Last Trip</th>
               <th className="text-right">Actions</th>
             </tr>
           </thead>
@@ -118,7 +84,7 @@ export default function BusesTable() {
             {paginatedData.map((bus) => (
               <tr key={bus.id} className="border-b hover:bg-gray-50">
 
-                <td className="py-2 font-medium">{bus.number}</td>
+                <td className="py-2 font-medium">{bus.busNumber}</td>
                 <td>{bus.type}</td>
                 <td>{bus.capacity}</td>
 
@@ -132,13 +98,23 @@ export default function BusesTable() {
                   </span>
                 </td>
 
-                <td>{bus.driver}</td>
-                <td>{bus.lastTrip}</td>
+                <td>{bus.driverName}</td>
 
-                <td className="text-right">
+                <td className="text-right flex justify-end gap-2">
+
+                  {/* Delete */}
+                  <button
+                    onClick={() => handleDelete(bus.id)}
+                    className="text-red-500 text-xs"
+                  >
+                    Delete
+                  </button>
+
+                  {/* Menu (future edit) */}
                   <button className="p-1 hover:bg-gray-100 rounded">
                     <MoreVertical size={16} />
                   </button>
+
                 </td>
 
               </tr>
@@ -148,11 +124,11 @@ export default function BusesTable() {
         </table>
       </div>
 
-      {/* 🔹 Pagination */}
+      {/* Pagination */}
       <div className="flex items-center justify-between mt-4 text-sm">
 
         <p className="text-gray-500">
-          Page {page} of {totalPages}
+          Page {page} of {totalPages || 1}
         </p>
 
         <div className="flex gap-2">
@@ -165,7 +141,7 @@ export default function BusesTable() {
           </button>
 
           <button
-            disabled={page === totalPages}
+            disabled={page === totalPages || totalPages === 0}
             onClick={() => setPage(page + 1)}
             className="px-3 py-1 border rounded disabled:opacity-50"
           >

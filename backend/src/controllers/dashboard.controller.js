@@ -35,24 +35,39 @@ const getRecentTrips = async (req, res) => {
     const trips = await prisma.trip.findMany({
       orderBy: { date: "desc" },
       take: 5,
+      include: {
+        bus: true,
+        route: true,
+      },
     });
 
-    res.json(trips);
+    // ✅ Transform data for frontend
+    const formatted = trips.map((t) => ({
+      id: t.id,
+      bus: t.bus?.busNumber || "N/A",
+      route: `${t.route?.from || ""} → ${t.route?.to || ""}`,
+      income: t.income,
+      date: t.date,
+    }));
+
+    res.json(formatted);
   } catch (error) {
     console.error("Recent Trips Error:", error);
     res.status(500).json({ error: "Failed to fetch trips" });
   }
 };
-
 // ✅ Chart Data
 const getChartData = async (req, res) => {
   try {
     const trips = await prisma.trip.findMany();
 
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-    const data = days.map((day) => {
-      const dayTrips = trips.filter((t) => t.day === day);
+    const data = days.map((day, index) => {
+      const dayTrips = trips.filter((t) => {
+        const tripDay = new Date(t.date).getDay(); // 0 = Sun
+        return tripDay === index;
+      });
 
       return {
         day,

@@ -5,56 +5,69 @@ import {
   Bar,
   XAxis,
   YAxis,
-  Tooltip,
   ResponsiveContainer,
-  CartesianGrid,
+  Tooltip,
+  Cell,
+  LabelList,
 } from "recharts";
 
-const data = [
-  { day: "Mon", trips: 12 },
-  { day: "Tue", trips: 18 },
-  { day: "Wed", trips: 10 },
-  { day: "Thu", trips: 20 },
-  { day: "Fri", trips: 25 },
-  { day: "Sat", trips: 15 },
-  { day: "Sun", trips: 8 },
-];
+export default function FleetChart({ buses = [] }: { buses?: any[] }) {
 
-export default function FleetChart() {
+  const active = buses
+    .filter((b) => b.status === "ACTIVE")
+    .reduce((sum, b) => sum + b.capacity, 0);
+
+  const maintenance = buses
+    .filter((b) => b.status === "MAINTENANCE")
+    .reduce((sum, b) => sum + b.capacity, 0);
+
+  const inactive = buses
+    .filter((b) => b.status === "INACTIVE")
+    .reduce((sum, b) => sum + b.capacity, 0);
+
+  const data = [
+    { name: "Active", capacity: active, color: "#22c55e" },
+    { name: "Maintenance", capacity: maintenance, color: "#f59e0b" },
+    { name: "Inactive", capacity: inactive, color: "#ef4444" },
+  ];
+
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm h-full flex flex-col">
+    <div className="bg-white p-4 rounded-xl shadow-sm h-full">
+      <h2 className="mb-2 font-semibold">Fleet Capacity by Status</h2>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-sm sm:text-base">
-          Fleet Utilization
-        </h2>
+      <p className="text-xs text-gray-500 mb-3">
+        Total seat capacity distributed across bus statuses
+      </p>
 
-        <select className="text-xs border rounded px-2 py-1">
-          <option>This Week</option>
-          <option>Last Week</option>
-        </select>
-      </div>
+      <div className="w-full h-full min-w-0">
+      <ResponsiveContainer width="100%" height="100%">
+  <BarChart 
+    data={data}
+    margin={{ top: 20, right: 20, left: 0, bottom: 10 }} // ✅ space for labels
+  >
+    <XAxis dataKey="name" />
+    
+    {/* ✅ Add headroom so labels don’t cut */}
+    <YAxis domain={[0, "dataMax + 20"]} />
 
-      {/* Chart */}
-      <div className="flex-1 min-h-[200px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data}>
-            
-            <CartesianGrid strokeDasharray="3 3" />
+    <Tooltip />
 
-            <XAxis dataKey="day" />
-            <YAxis />
+    <Bar dataKey="capacity" radius={[6, 6, 0, 0]}>
+      
+      {data.map((entry, index) => (
+        <Cell key={index} fill={entry.color} />
+      ))}
 
-            <Tooltip />
+      {/* ✅ Always visible labels */}
+      <LabelList 
+        dataKey="capacity" 
+        position="top"
+        style={{ fontSize: "12px", fill: "#374151" }}
+      />
 
-            <Bar
-              dataKey="trips"
-              radius={[6, 6, 0, 0]}
-              fill="#3b82f6"
-            />
-          </BarChart>
-        </ResponsiveContainer>
+    </Bar>
+  </BarChart>
+</ResponsiveContainer>
       </div>
     </div>
   );

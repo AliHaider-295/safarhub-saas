@@ -5,16 +5,18 @@ import { useState } from "react";
 export default function AddBusModal({
   open,
   onClose,
+  fetchBuses, // ✅ add this prop
 }: {
   open: boolean;
   onClose: () => void;
+  fetchBuses: () => void;
 }) {
   const [form, setForm] = useState({
-    number: "",
+    busNumber: "",
     type: "",
     capacity: "",
-    status: "Active",
-    driver: "",
+    status: "ACTIVE",
+    driverName: "",
   });
 
   if (!open) return null;
@@ -23,10 +25,25 @@ export default function AddBusModal({
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    console.log("New Bus:", form);
-    // later → API call
-    onClose();
+  const handleSubmit = async () => {
+    try {
+      await fetch("http://localhost:5000/api/buses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...form,
+          capacity: Number(form.capacity), // ✅ fix type
+          userId: "YOUR_USER_ID", // 🔥 replace later with auth
+        }),
+      });
+
+      fetchBuses(); // ✅ refresh table
+      onClose();    // ✅ close modal
+    } catch (error) {
+      console.error("Error adding bus:", error);
+    }
   };
 
   return (
@@ -34,14 +51,12 @@ export default function AddBusModal({
       
       <div className="bg-white w-full max-w-md rounded-xl p-6 shadow-lg">
         
-        {/* Header */}
         <h2 className="text-lg font-semibold mb-4">Add New Bus</h2>
 
-        {/* Form */}
         <div className="space-y-3">
 
           <input
-            name="number"
+            name="busNumber"
             placeholder="Bus Number"
             className="w-full border p-2 rounded-lg"
             onChange={handleChange}
@@ -66,14 +81,15 @@ export default function AddBusModal({
             name="status"
             className="w-full border p-2 rounded-lg"
             onChange={handleChange}
+            value={form.status}
           >
-            <option>Active</option>
-            <option>Maintenance</option>
-            <option>Inactive</option>
+            <option value="ACTIVE">Active</option>
+            <option value="MAINTENANCE">Maintenance</option>
+            <option value="INACTIVE">Inactive</option>
           </select>
 
           <input
-            name="driver"
+            name="driverName"
             placeholder="Driver Name"
             className="w-full border p-2 rounded-lg"
             onChange={handleChange}
@@ -81,7 +97,6 @@ export default function AddBusModal({
 
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end gap-2 mt-5">
           <button
             onClick={onClose}

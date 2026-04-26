@@ -4,66 +4,46 @@ import {
   PieChart,
   Pie,
   Cell,
-  Tooltip,
   ResponsiveContainer,
+  Tooltip,
 } from "recharts";
 
-const data = [
-  { name: "Active", value: 18 },
-  { name: "Maintenance", value: 3 },
-  { name: "Inactive", value: 3 },
-];
+export default function BusStatusChart({ buses = [] }: { buses?: any[] }) {
+  // ✅ Calculate counts
+  const active = buses.filter((b) => b.status === "ACTIVE").length;
+  const maintenance = buses.filter((b) => b.status === "MAINTENANCE").length;
+  const inactive = buses.filter((b) => b.status === "INACTIVE").length;
 
-const COLORS = ["#22c55e", "#facc15", "#ef4444"];
+  const data = [
+    { name: "Active", value: active },
+    { name: "Maintenance", value: maintenance },
+    { name: "Inactive", value: inactive },
+  ];
 
-export default function BusStatusChart() {
+  const COLORS = ["#22c55e", "#f59e0b", "#ef4444"];
+
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm h-full flex flex-col">
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-sm sm:text-base">
-          Bus Status Overview
-        </h2>
-
-        <select className="text-xs border rounded px-2 py-1">
-          <option>This Week</option>
-          <option>Last Week</option>
-        </select>
-      </div>
-
-      {/* Chart */}
-      <div className="flex-1 min-h-[200px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={4}
-              dataKey="value"
-            >
-              {data.map((entry, index) => (
-                <Cell key={index} fill={COLORS[index]} />
-              ))}
-            </Pie>
-
-            <Tooltip />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Legend */}
-      <div className="flex justify-around mt-3 text-xs">
-        {data.map((item, i) => (
-          <div key={i} className="flex items-center gap-1">
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: COLORS[i] }}
-            />
-            {item.name}
-          </div>
-        ))}
+    <div className="bg-white p-4 rounded-xl shadow-sm h-full">
+      <h2 className="mb-2 font-semibold">Bus Status Overview</h2>
+      <div className="w-full h-full min-w-0">
+      <ResponsiveContainer  width="100%" height="100%">
+        <PieChart>
+        <Pie
+  data={data}
+  dataKey="value"
+  innerRadius={50}
+  outerRadius={80}
+  paddingAngle={3}
+  labelLine={false}
+  label={({ name, value }) => `${name}: ${value}`}
+>
+            {data.map((_, index) => (
+              <Cell key={index} fill={COLORS[index]} />
+            ))}
+          </Pie>
+          <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
       </div>
     </div>
   );

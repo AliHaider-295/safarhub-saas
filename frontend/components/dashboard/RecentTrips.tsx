@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Bus, MapPin } from "lucide-react";
 
 type Trip = {
   id: string;
@@ -19,7 +20,6 @@ export default function RecentTrips() {
       .then((data) => setTrips(data));
   }, []);
 
-  // ✅ Format date nicely
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -28,47 +28,67 @@ export default function RecentTrips() {
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm w-full">
-      <h2 className="mb-3 text-sm sm:text-base font-semibold">
-        Recent Trips
-      </h2>
+    <div className="bg-white p-5 rounded-2xl shadow-sm w-full">
 
-      {/* ✅ Scroll wrapper (IMPORTANT) */}
-      <div className="overflow-x-auto">
-        <table className="min-w-[600px] w-full text-sm">
-          <thead className="text-gray-500 border-b">
-            <tr>
-              <th className="text-left py-2">Bus</th>
-              <th className="text-left py-2">Route</th>
-              <th className="text-left py-2">Income</th>
-              <th className="text-left py-2">Date</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {trips.map((trip) => (
-              <tr key={trip.id} className="border-b">
-                <td className="py-2 whitespace-nowrap">
-                  {trip.bus}
-                </td>
-
-                <td className="whitespace-nowrap">
-                  {trip.route}
-                </td>
-
-                <td className="text-green-600 font-medium whitespace-nowrap">
-                  ${trip.income}
-                </td>
-
-                {/* ✅ FIXED DATE */}
-                <td className="whitespace-nowrap text-gray-600">
-                  {formatDate(trip.date)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold">Recent Trips</h2>
+        <span className="text-xs text-gray-400">
+          Last {trips.length} trips
+        </span>
       </div>
+
+      {/* Empty State */}
+      {trips.length === 0 ? (
+        <div className="text-center py-10 text-gray-400 text-sm">
+          No trips available
+        </div>
+      ) : (
+        <div className="space-y-3">
+
+          {trips.map((trip) => (
+            <div
+              key={trip.id}
+              className="flex items-center justify-between p-3 rounded-xl border hover:bg-gray-50 transition"
+            >
+
+              {/* Left: Bus + Route */}
+              <div className="flex items-center gap-3">
+
+                {/* Icon */}
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <Bus size={16} className="text-blue-600" />
+                </div>
+
+                <div>
+                  {/* Bus */}
+                  <p className="text-sm font-medium text-gray-800">
+                    {trip.bus}
+                  </p>
+
+                  {/* Route */}
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <MapPin size={12} />
+                    {trip.route}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right: Income + Date */}
+              <div className="text-right">
+                <p className="text-sm font-semibold text-green-600">
+                  ${trip.income}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {formatDate(trip.date)}
+                </p>
+              </div>
+
+            </div>
+          ))}
+
+        </div>
+      )}
     </div>
   );
 }

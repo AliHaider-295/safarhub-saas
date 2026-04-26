@@ -22,9 +22,11 @@ export default function RevenueChart() {
   useEffect(() => {
     fetch("http://localhost:5000/api/dashboard/chart")
       .then((res) => res.json())
-      .then((data) => setData(data));
+      .then((data) => {
+        console.log("Chart API Data:", data); // 🔥 ADD THIS
+        setData(data);
+      });
   }, []);
-
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm w-full">
       <h2 className="mb-3 text-sm sm:text-base font-semibold">
