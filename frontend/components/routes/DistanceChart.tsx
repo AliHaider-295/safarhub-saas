@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   PieChart,
   Pie,
@@ -10,13 +11,17 @@ import {
 } from "recharts";
 
 export default function DistanceChart() {
-  const data = [
-    { name: "Short (<200km)", value: 6 },
-    { name: "Medium (200-500km)", value: 10 },
-    { name: "Long (>500km)", value: 4 },
-  ];
+  const [data, setData] = useState<any[]>([]);
 
   const COLORS = ["#22c55e", "#f59e0b", "#ef4444"];
+
+  // ✅ Fetch from backend
+  useEffect(() => {
+    fetch("http://localhost:5000/api/routes/distance-stats")
+      .then((res) => res.json())
+      .then((res) => setData(res))
+      .catch((err) => console.error(err));
+  }, []);
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm h-full">
@@ -29,7 +34,7 @@ export default function DistanceChart() {
             <Pie
               data={data}
               dataKey="value"
-              innerRadius={50}   // 🔥 makes it donut (modern UI)
+              innerRadius={50}
               outerRadius={80}
               paddingAngle={3}
             >
@@ -37,7 +42,7 @@ export default function DistanceChart() {
                 <Cell key={i} fill={COLORS[i]} />
               ))}
 
-              {/* ✅ ALWAYS SHOW VALUES */}
+              {/* ✅ Always show values */}
               <LabelList
                 dataKey="value"
                 position="outside"
@@ -51,7 +56,7 @@ export default function DistanceChart() {
         </ResponsiveContainer>
       </div>
 
-      {/* 🔥 Custom Legend (important for clarity) */}
+      {/* Legend */}
       <div className="flex justify-center gap-4 mt-3 text-xs">
         {data.map((item, i) => (
           <div key={i} className="flex items-center gap-1">

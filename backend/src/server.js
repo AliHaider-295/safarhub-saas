@@ -9,6 +9,7 @@ const tripRoutes = require("./routes/trip.routes");
 const { prisma } = require("./db/prisma");
 const { fail } = require("./utils/respond");
 const busRoutes = require("./routes/bus.routes");
+const routeRoutes = require("./routes/route.routes");
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use("/api/auth", authRoutes);            // ✅ ADD (you missed this)
 app.use("/api/dashboard", dashboardRoutes); // ✅ KEEP
 app.use("/api/trips", tripRoutes);
 app.use("/api/buses", busRoutes);
+app.use("/api/routes", routeRoutes);
 /* ---------------- 404 (MUST BE LAST) ---------------- */
 app.use((req, res) => {
   console.log("❌ Not Found:", req.originalUrl);
