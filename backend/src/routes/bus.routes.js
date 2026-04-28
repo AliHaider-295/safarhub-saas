@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { protect } = require("../middleware/auth.middleware");
 
 const {
   createBus,
@@ -9,8 +10,8 @@ const {
 } = require("../controllers/bus.controller");
 
 // Routes
-router.post("/", createBus);
-router.get("/", getBuses);
+router.post("/", protect, createBus);
+router.get("/", protect, getBuses);
 router.delete("/:id", deleteBus);
 router.put("/:id", updateBus);
 

@@ -25,7 +25,7 @@ export default function Sidebar() {
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Buses", href: "/dashboard/buses", icon: Bus },
     { name: "Routes", href: "/dashboard/routes", icon: Map },
-    { name: "Staff", href: "/dashboard/Staff", icon: UserCog },
+    { name: "Staff", href: "/dashboard/staff", icon: UserCog },
     { name: "Passengers", href: "/dashboard/passengers", icon: Users },
     { name: "Bookings", href: "/dashboard/bookings", icon: Ticket },
     { name: "Finance", href: "/dashboard/finance", icon: Wallet },

@@ -25,7 +25,7 @@ export default function BusStatusChart({ buses = [] }: { buses?: any[] }) {
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm h-full">
       <h2 className="mb-2 font-semibold">Bus Status Overview</h2>
-      <div className="w-full h-full min-w-0">
+      <div className="w-full h-[250px] min-w-0">
       <ResponsiveContainer  width="100%" height="100%">
         <PieChart>
         <Pie

@@ -1,18 +1,23 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const { prisma } = require("./src/db/prisma");
+const bcrypt = require("bcryptjs");
 
 async function main() {
+  console.log("🌱 Seeding started...");
 
-  // 👤 Create User
+  // ✅ 1. Create User
+  const hashed = await bcrypt.hash("123456", 10);
+
   const user = await prisma.user.create({
     data: {
       companyName: "Safar Travels",
-      email: "admin@safarhub.com",
-      password: "hashedpassword",
+      email: "admin@safar.com",
+      password: hashed,
     },
   });
 
-  // 🚌 Create Buses
+  console.log("👤 User created:", user.id);
+
+  // ✅ 2. Create Buses
   const buses = await prisma.bus.createMany({
     data: [
       {
@@ -20,7 +25,7 @@ async function main() {
         type: "AC",
         capacity: 50,
         status: "ACTIVE",
-        driverName: "Ali Khan",
+        driverName: "Ali",
         userId: user.id,
       },
       {
@@ -28,75 +33,77 @@ async function main() {
         type: "Non-AC",
         capacity: 45,
         status: "MAINTENANCE",
-        driverName: "Ahmed Raza",
+        driverName: "Ahmed",
         userId: user.id,
       },
       {
         busNumber: "BUS-103",
         type: "AC",
-        capacity: 40,
+        capacity: 60,
         status: "INACTIVE",
-        driverName: "Usman Ali",
+        driverName: "Usman",
         userId: user.id,
       },
-
-      // 👉 Generate more buses automatically
-      ...Array.from({ length: 20 }).map((_, i) => ({
-        busNumber: `BUS-${200 + i}`,
-        type: i % 2 === 0 ? "AC" : "Non-AC",
-        capacity: 40 + (i % 3) * 5,
-        status: ["ACTIVE", "INACTIVE", "MAINTENANCE"][i % 3],
-        driverName: `Driver ${i}`,
-        userId: user.id,
-      })),
     ],
   });
 
-  // 🛣️ Routes
+  console.log("🚌 Buses added");
+
+  // ✅ 3. Create Routes
   const routes = await prisma.route.createMany({
     data: [
-      { from: "Karachi", to: "Lahore", distance: 1200, userId: user.id },
-      { from: "Lahore", to: "Islamabad", distance: 380, userId: user.id },
-      { from: "Multan", to: "Faisalabad", distance: 250, userId: user.id },
-      { from: "Peshawar", to: "Quetta", distance: 900, userId: user.id },
-
-      ...Array.from({ length: 10 }).map((_, i) => ({
-        from: `City ${i}`,
-        to: `City ${i + 1}`,
-        distance: 100 + i * 20,
+      {
+        name: "Karachi → Lahore",
+        distance: 1200,
         userId: user.id,
-      })),
+      },
+      {
+        name: "Lahore → Islamabad",
+        distance: 380,
+        userId: user.id,
+      },
+      {
+        name: "Karachi → Hyderabad",
+        distance: 150,
+        userId: user.id,
+      },
     ],
   });
 
-  // 📊 Trips (for charts)
-  const allBuses = await prisma.bus.findMany();
-  const allRoutes = await prisma.route.findMany();
+  console.log("🛣 Routes added");
 
-  const tripsData = [];
-
-  for (let i = 0; i < 50; i++) {
-    tripsData.push({
-      date: new Date(Date.now() - i * 86400000),
-      income: Math.floor(Math.random() * 50000) + 10000,
-      expense: Math.floor(Math.random() * 20000) + 5000,
-      busId: allBuses[i % allBuses.length].id,
-      routeId: allRoutes[i % allRoutes.length].id,
-      userId: user.id,
-    });
-  }
-
-  await prisma.trip.createMany({
-    data: tripsData,
+  // ✅ 4. Create Trips
+  const trips = await prisma.trip.createMany({
+    data: [
+      {
+        income: 50000,
+        expense: 20000,
+        day: "Mon",
+        userId: user.id,
+      },
+      {
+        income: 60000,
+        expense: 25000,
+        day: "Tue",
+        userId: user.id,
+      },
+      {
+        income: 45000,
+        expense: 18000,
+        day: "Wed",
+        userId: user.id,
+      },
+    ],
   });
 
-  console.log("✅ Seed Data Inserted Successfully");
+  console.log("📊 Trips added");
+
+  console.log("✅ Seeding completed!");
 }
 
 main()
   .catch((e) => {
     console.error(e);
-    process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();

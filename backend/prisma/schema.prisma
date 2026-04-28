@@ -33,15 +33,17 @@ model Bus {
   status      BusStatus  @default(ACTIVE)
   driverName  String
   createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   userId      String
   user        User       @relation(fields: [userId], references: [id])
 
-  trips       Trip[]     // ✅ IMPORTANT
+  trips       Trip[]
 
   @@index([userId])
+  @@unique([id, userId])         // 🔥 required for secure queries
+  @@unique([busNumber, userId])  // 🔥 optional but recommended
 }
-
 model Route {
   id        String   @id @default(uuid())
   from      String

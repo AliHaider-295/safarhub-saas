@@ -25,15 +25,21 @@ export default function BusesPage() {
     try {
       const res = await fetch("http://localhost:5000/api/buses");
       const data = await res.json();
-      setBuses(data);
+  
+      // ✅ SAFE HANDLING
+      if (Array.isArray(data)) {
+        setBuses(data);
+      } else if (Array.isArray(data.data)) {
+        setBuses(data.data);
+      } else {
+        setBuses([]);
+      }
+  
     } catch (error) {
       console.error("Fetch error:", error);
+      setBuses([]); // fallback
     }
   };
-
-  useEffect(() => {
-    fetchBuses();
-  }, []);
 
   // ✅ Stats calculation (dynamic cards)
   const total = buses.length;
