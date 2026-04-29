@@ -1,39 +1,69 @@
 "use client";
 
-import { useState } from "react";
-import { MoreVertical } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MoreVertical, Trash2 } from "lucide-react";
 
-const data = [
-  {
-    id: 1,
-    from: "Karachi",
-    to: "Lahore",
-    distance: 1200,
-    trips: 20,
-    status: "active",
-    date: "2026-04-01",
-  },
-  {
-    id: 2,
-    from: "Lahore",
-    to: "Islamabad",
-    distance: 380,
-    trips: 15,
-    status: "inactive",
-    date: "2026-04-02",
-  },
-];
-
-export default function RoutesTable() {
+export default function RoutesTable({ refresh }: any) {
   const [search, setSearch] = useState("");
+  const [routes, setRoutes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = data.filter((r) =>
+  // ✅ Fetch routes
+  const fetchRoutes = async () => {
+    try {
+      setLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      const res = await fetch("http://localhost:5000/api/routes", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      // ✅ Safety (avoid filter error)
+      setRoutes(Array.isArray(data) ? data : data.data || []);
+    } catch (error) {
+      console.error("Fetch routes error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoutes();
+  }, [refresh]);
+
+  // ✅ Search filter
+  const filtered = routes.filter((r) =>
     `${r.from} ${r.to}`.toLowerCase().includes(search.toLowerCase())
   );
 
-  const statusStyle = {
-    active: "bg-green-100 text-green-600",
-    inactive: "bg-red-100 text-red-600",
+  const statusStyle: any = {
+    ACTIVE: "bg-green-100 text-green-600",
+    INACTIVE: "bg-red-100 text-red-600",
+  };
+
+  // ✅ Delete route
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this route?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      await fetch(`http://localhost:5000/api/routes/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      fetchRoutes(); // refresh
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
   };
 
   return (
@@ -45,7 +75,7 @@ export default function RoutesTable() {
 
         <input
           placeholder="Search route..."
-          className="border px-3 py-2 rounded-lg text-sm w-full sm:w-64"
+          className="border px-3 py-2 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
@@ -66,72 +96,86 @@ export default function RoutesTable() {
           </thead>
 
           <tbody>
-            {filtered.map((r) => (
-              <tr
-                key={r.id}
-                className="border-b hover:bg-gray-50 transition"
-              >
-
-                {/* 🔥 Route (Improved UI) */}
-                <td className="py-3">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-gray-800">
-                      {r.from} → {r.to}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      Direct route
-                    </span>
-                  </div>
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="text-center py-6 text-gray-400">
+                  Loading routes...
                 </td>
-
-                {/* Distance */}
-                <td className="text-gray-600">
-                  {r.distance} km
-                </td>
-
-                {/* 🔥 Trips Badge */}
-                <td>
-                  <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs font-medium">
-                    {r.trips} trips
-                  </span>
-                </td>
-
-                {/* Status */}
-                <td>
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      statusStyle[r.status]
-                    }`}
-                  >
-                    {r.status}
-                  </span>
-                </td>
-
-                {/* Date */}
-                <td className="text-gray-500 text-sm">
-                  {new Date(r.date).toLocaleDateString()}
-                </td>
-
-                {/* 🔥 Actions */}
-                <td className="text-right">
-                  <button className="p-1 hover:bg-gray-100 rounded">
-                    <MoreVertical size={16} />
-                  </button>
-                </td>
-
               </tr>
-            ))}
+            ) : filtered.length > 0 ? (
+              filtered.map((r: any) => (
+                <tr
+                  key={r.id}
+                  className="border-b hover:bg-gray-50 transition"
+                >
+
+                  {/* Route */}
+                  <td className="py-3">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-gray-800">
+                        {r.from} → {r.to}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        Route ID: {r.id.slice(0, 6)}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* Distance */}
+                  <td className="text-gray-600">
+                    {r.distance} km
+                  </td>
+
+                  {/* Trips */}
+                  <td>
+                    <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs font-medium">
+                      {r.trips || 0} trips
+                    </span>
+                  </td>
+
+                  {/* Status */}
+                  <td>
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${
+                        statusStyle[r.status] || "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {r.status}
+                    </span>
+                  </td>
+
+                  {/* Date */}
+                  <td className="text-gray-500 text-sm">
+                    {new Date(r.createdAt).toLocaleDateString()}
+                  </td>
+
+                  {/* Actions */}
+                  <td className="text-right flex justify-end gap-2">
+                    <button
+                      onClick={() => handleDelete(r.id)}
+                      className="p-1 hover:bg-red-100 rounded text-red-500"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+
+                    <button className="p-1 hover:bg-gray-100 rounded">
+                      <MoreVertical size={16} />
+                    </button>
+                  </td>
+
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="text-center py-6 text-gray-400">
+                  No routes found
+                </td>
+              </tr>
+            )}
           </tbody>
 
         </table>
       </div>
-
-      {/* 🔹 Empty State */}
-      {filtered.length === 0 && (
-        <p className="text-center text-gray-400 mt-6">
-          No routes found
-        </p>
-      )}
     </div>
   );
 }

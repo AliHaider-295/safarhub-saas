@@ -10,6 +10,7 @@ const { prisma } = require("./db/prisma");
 const { fail } = require("./utils/respond");
 const busRoutes = require("./routes/bus.routes");
 const routeRoutes = require("./routes/route.routes");
+const staffRoutes = require("./routes/staff.routes");
 
 const app = express();
 
@@ -52,6 +53,8 @@ app.use("/api/dashboard", dashboardRoutes); // ✅ KEEP
 app.use("/api/trips", tripRoutes);
 app.use("/api/buses", busRoutes);
 app.use("/api/routes", routeRoutes);
+
+app.use("/api/staff", staffRoutes);
 /* ---------------- 404 (MUST BE LAST) ---------------- */
 app.use((req, res) => {
   console.log("❌ Not Found:", req.originalUrl);

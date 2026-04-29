@@ -9,21 +9,24 @@ import {
   Tooltip,
 } from "recharts";
 
+import ChartContainer from "@/components/ui/ChartContainer"; // ✅ IMPORTANT
+
 export default function StaffTrendChart() {
   const data = [
-    { month: "Jan", staff: 140 },
-    { month: "Feb", staff: 155 },
-    { month: "Mar", staff: 170 },
-    { month: "Apr", staff: 185 },
-    { month: "May", staff: 196 },
+    { id: "jan", month: "Jan", staff: 140 },
+    { id: "feb", month: "Feb", staff: 155 },
+    { id: "mar", month: "Mar", staff: 170 },
+    { id: "apr", month: "Apr", staff: 185 },
+    { id: "may", month: "May", staff: 196 },
   ];
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm">
+    <div className="bg-white p-4 rounded-xl shadow-sm w-full">
       <h2 className="mb-3 font-semibold">Staff Growth</h2>
 
-      <div className="w-full h-[250px]">
-        <ResponsiveContainer>
+      {/* ✅ THIS FIXES EVERYTHING */}
+      <ChartContainer height={260}>
+        <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <XAxis dataKey="month" />
             <YAxis />
@@ -31,7 +34,7 @@ export default function StaffTrendChart() {
             <Line type="monotone" dataKey="staff" stroke="#3b82f6" />
           </LineChart>
         </ResponsiveContainer>
-      </div>
+      </ChartContainer>
     </div>
   );
 }

@@ -12,11 +12,16 @@ function signToken(user) {
 
   return jwt.sign(
     {
+      id: user.id, // optional
       sub: user.id,
       email: user.email,
+      role: user.role || "USER"
     },
     secret,
-    { expiresIn: "7d" }
+    { expiresIn: "7d",
+      issuer: "safarhub",
+      audience: "safarhub-users",
+     }
   );
 }
 

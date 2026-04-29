@@ -28,13 +28,13 @@ export default function RevenueChart() {
       });
   }, []);
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm w-full">
-      <h2 className="mb-3 text-sm sm:text-base font-semibold">
+    <div className="bg-white p-4 rounded-xl shadow-sm">
+      <h2 className="mb-3 font-semibold">
         Weekly Income vs Expense
       </h2>
 
       {/* ✅ Responsive Height */}
-      <div className="w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[360px]">
+      <div className="w-full h-[250px] min-h-[250px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <XAxis

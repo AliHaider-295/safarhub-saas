@@ -32,14 +32,14 @@ export default function FleetChart({ buses = [] }: { buses?: any[] }) {
   ];
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm h-full">
-      <h2 className="mb-2 font-semibold">Fleet Capacity by Status</h2>
+    <div className="bg-white p-4 rounded-xl shadow-sm">
+      <h2 className="mb-3 font-semibold">Fleet Capacity by Status</h2>
 
       <p className="text-xs text-gray-500 mb-3">
         Total seat capacity distributed across bus statuses
       </p>
 
-      <div className="w-full h-full min-w-0">
+      <div className="w-full h-[250px] min-h-[250px]">
       <ResponsiveContainer width="100%" height="100%">
   <BarChart 
     data={data}

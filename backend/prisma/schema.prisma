@@ -14,36 +14,39 @@ enum BusStatus {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  companyName  String
-  email        String   @unique
-  password     String
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid())
+  companyName String
+  email       String   @unique
+  password    String
+  createdAt   DateTime @default(now())
 
-  buses        Bus[]
-  routes       Route[]
-  trips        Trip[]
+  buses  Bus[]
+  routes Route[]
+  trips  Trip[]
+
+  staff Staff[]
 }
 
 model Bus {
-  id          String     @id @default(uuid())
-  busNumber   String
-  type        String
-  capacity    Int
-  status      BusStatus  @default(ACTIVE)
-  driverName  String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id         String    @id @default(uuid())
+  busNumber  String
+  type       String
+  capacity   Int
+  status     BusStatus @default(ACTIVE)
+  driverName String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  userId      String
-  user        User       @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  trips       Trip[]
+  trips Trip[]
 
+  @@unique([id, userId]) // 🔥 required for secure queries
+  @@unique([busNumber, userId]) // 🔥 optional but recommended
   @@index([userId])
-  @@unique([id, userId])         // 🔥 required for secure queries
-  @@unique([busNumber, userId])  // 🔥 optional but recommended
 }
+
 model Route {
   id        String   @id @default(uuid())
   from      String
@@ -51,10 +54,10 @@ model Route {
   distance  Int
   createdAt DateTime @default(now())
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  trips     Trip[]
+  trips Trip[]
 
   @@index([userId])
 }
@@ -66,15 +69,29 @@ model Trip {
   expense   Float
   createdAt DateTime @default(now())
 
-  busId     String
-  routeId   String
-  userId    String
+  busId   String
+  routeId String
+  userId  String
 
-  bus       Bus     @relation(fields: [busId], references: [id])
-  route     Route   @relation(fields: [routeId], references: [id])
-  user      User    @relation(fields: [userId], references: [id])
+  bus   Bus   @relation(fields: [busId], references: [id])
+  route Route @relation(fields: [routeId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([busId])
   @@index([routeId])
+}
+
+model Staff {
+  id        String   @id @default(uuid())
+  name      String
+  role      String // Driver, Conductor, Helper etc
+  phone     String
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }

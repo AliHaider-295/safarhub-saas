@@ -23,9 +23,9 @@ export default function BusStatusChart({ buses = [] }: { buses?: any[] }) {
   const COLORS = ["#22c55e", "#f59e0b", "#ef4444"];
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm h-full">
-      <h2 className="mb-2 font-semibold">Bus Status Overview</h2>
-      <div className="w-full h-[250px] min-w-0">
+    <div className="bg-white p-4 rounded-xl shadow-sm">
+      <h2 className="mb-3 font-semibold">Bus Status Overview</h2>
+      <div className="w-full h-[250px] min-h-[250px]">
       <ResponsiveContainer  width="100%" height="100%">
         <PieChart>
         <Pie
