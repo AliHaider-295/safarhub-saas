@@ -10,56 +10,66 @@ import {
   LabelList,
 } from "recharts";
 
-export default function DistanceChart() {
-  const [data, setData] = useState<any[]>([]);
+import ChartContainer from "@/components/common/ChartContainer";
 
+type DistanceData = {
+  name: string;
+  value: number;
+};
+
+export default function DistanceChart() {
+  const [data, setData] = useState<DistanceData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const COLORS = ["#22c55e", "#f59e0b", "#ef4444"];
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/routes/distance-stats")
-      .then((res) => res.json())
-      .then((res) => setData(res || []))
-      .catch((err) => console.error(err));
+    const fetchData = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:5000/api/routes/distance-stats"
+        );
+        const result = await res.json();
+
+        setData(Array.isArray(result) ? result : []);
+      } catch (err) {
+        console.error("Distance chart error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm">
+    <div className="bg-white p-4 rounded-xl shadow-sm w-full min-w-0">
       <h2 className="mb-3 font-semibold">Distance Distribution</h2>
 
-      <div className="w-full h-[260px] min-h-[260px]">
-        {data.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                dataKey="value"
-                innerRadius={50}
-                outerRadius={80}
-                paddingAngle={3}
-              >
-                {data.map((item, i) => (
-                  <Cell
-                    key={`${item.name}-${i}`} // ✅ FIXED KEY
-                    fill={COLORS[i % COLORS.length]}
-                  />
-                ))}
-
-                <LabelList
-                  dataKey="value"
-                  position="outside"
-                  className="text-xs fill-gray-700"
-                />
-              </Pie>
-
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-            No data available
-          </div>
-        )}
-      </div>
+      {/* ✅ FIXED CONTAINER */}
+      <ChartContainer height={260}>
+  {!mounted || loading ? (
+    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+      Loading...
+    </div>
+  ) : data.length > 0 ? (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie data={data} dataKey="value" innerRadius={50} outerRadius={80}>
+          {data.map((item, i) => (
+            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+      </PieChart>
+    </ResponsiveContainer>
+  ) : (
+    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+      No data available
+    </div>
+  )}
+</ChartContainer>
+      
     </div>
   );
 }

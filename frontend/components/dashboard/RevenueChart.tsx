@@ -10,6 +10,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import ChartContainer from "@/components/common/ChartContainer";
+
 type ChartData = {
   day: string;
   income: number;
@@ -18,50 +20,59 @@ type ChartData = {
 
 export default function RevenueChart() {
   const [data, setData] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/dashboard/chart")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("Chart API Data:", data); // 🔥 ADD THIS
-        setData(data);
-      });
+    const fetchData = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/dashboard/chart");
+        const result = await res.json();
+
+        setData(Array.isArray(result) ? result : []);
+      } catch (err) {
+        console.error("Chart fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
+
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm">
+    <div className="bg-white p-4 rounded-xl shadow-sm w-full min-w-0">
       <h2 className="mb-3 font-semibold">
         Weekly Income vs Expense
       </h2>
 
-      {/* ✅ Responsive Height */}
-      <div className="w-full h-[250px] min-h-[250px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data}>
-            <XAxis
-              dataKey="day"
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis
-              tick={{ fontSize: 12 }}
-            />
-            <Tooltip />
+      {/* ✅ FIXED: stable height + safe render */}
+      <ChartContainer height={260}>
+        {!loading && data.length > 0 ? (
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={data}>
+              <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip />
 
-            {/* ✅ Income */}
-            <Bar
-              dataKey="income"
-              fill="#22c55e"
-              radius={[4, 4, 0, 0]}
-            />
+              <Bar
+                dataKey="income"
+                fill="#22c55e"
+                radius={[4, 4, 0, 0]}
+              />
 
-            {/* ✅ Expense */}
-            <Bar
-              dataKey="expense"
-              fill="#ef4444"
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+              <Bar
+                dataKey="expense"
+                fill="#ef4444"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+            {loading ? "Loading chart..." : "No data available"}
+          </div>
+        )}
+      </ChartContainer>
     </div>
   );
 }

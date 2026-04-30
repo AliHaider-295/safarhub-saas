@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 
-import ChartContainer from "@/components/ui/ChartContainer"; // ✅ IMPORTANT
+import ChartContainer from "@/components/common/ChartContainer"; // ✅ IMPORTANT
 
 export default function StaffTrendChart() {
   const data = [

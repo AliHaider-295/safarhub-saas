@@ -11,7 +11,7 @@ import {
 } from "recharts";
 
 import { getToken } from "@/utils/auth";
-import ChartContainer from "@/components/ui/ChartContainer";
+import ChartContainer from "@/components/common/ChartContainer";
 
 type ChartData = {
   name: string;

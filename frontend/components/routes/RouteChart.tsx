@@ -12,11 +12,17 @@ import {
   LabelList,
 } from "recharts";
 
-export default function RouteChart() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+import ChartContainer from "@/components/common/ChartContainer";
 
-  // ✅ Fetch from backend
+type RouteData = {
+  route: string;
+  trips: number;
+};
+
+export default function RouteChart() {
+  const [data, setData] = useState<RouteData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const fetchChart = async () => {
       try {
@@ -24,13 +30,12 @@ export default function RouteChart() {
 
         const res = await fetch("http://localhost:5000/api/routes/usage", {
           headers: {
-            Authorization: `Bearer ${token}`, // ✅ auth
+            Authorization: `Bearer ${token}`,
           },
         });
 
         const result = await res.json();
 
-        // ✅ Safety (avoid "not a function" error)
         setData(Array.isArray(result) ? result : []);
       } catch (error) {
         console.error("Chart fetch error:", error);
@@ -43,60 +48,33 @@ export default function RouteChart() {
   }, []);
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm">
+    <div className="bg-white p-4 rounded-xl shadow-sm w-full min-w-0">
       <h2 className="mb-3 font-semibold">Route Usage</h2>
 
-      <div className="w-full h-[260px] min-h-[260px]">
-        {loading ? (
-          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-            Loading...
-          </div>
-        ) : data.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
-              
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-
-              <XAxis
-                dataKey="route"
-                tick={{ fontSize: 12 }}
-                axisLine={false}
-                tickLine={false}
-              />
-
-              <YAxis
-                tick={{ fontSize: 12 }}
-                axisLine={false}
-                tickLine={false}
-              />
-
-              <Tooltip
-                cursor={{ fill: "rgba(0,0,0,0.05)" }}
-                contentStyle={{
-                  borderRadius: "8px",
-                  border: "none",
-                }}
-              />
-
-              <Bar
-                dataKey="trips"
-                fill="#3b82f6"
-                radius={[6, 6, 0, 0]}
-              >
-                <LabelList
-                  dataKey="trips"
-                  position="top"
-                  className="text-xs fill-gray-700"
-                />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-            No route data available
-          </div>
-        )}
-      </div>
+      {/* ✅ FIXED CONTAINER (NO MORE WIDTH -1 ERROR) */}
+      <ChartContainer height={260}>
+  {!mounted || loading ? (
+    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+      Loading...
+    </div>
+  ) : data.length > 0 ? (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        <XAxis dataKey="route" />
+        <YAxis />
+        <Tooltip />
+        <Bar dataKey="trips" fill="#3b82f6">
+          <LabelList dataKey="trips" position="top" />
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  ) : (
+    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+      No data available
+    </div>
+  )}
+</ChartContainer>
     </div>
   );
 }
