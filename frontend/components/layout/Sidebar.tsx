@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logout } from "@/utils/auth";
 import {
   LayoutDashboard,
   Bus,
@@ -14,8 +15,10 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  FileText
 } from "lucide-react";
 import { useState } from "react";
+import {  } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -26,7 +29,7 @@ export default function Sidebar() {
     { name: "Buses", href: "/dashboard/buses", icon: Bus },
     { name: "Routes", href: "/dashboard/routes", icon: Map },
     { name: "Staff", href: "/dashboard/staff", icon: UserCog },
-    { name: "Passengers", href: "/dashboard/passengers", icon: Users },
+    { name: "Records", href: "/dashboard/records", icon: FileText },
     { name: "Bookings", href: "/dashboard/bookings", icon: Ticket },
     { name: "Finance", href: "/dashboard/finance", icon: Wallet },
     { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
@@ -82,13 +85,22 @@ export default function Sidebar() {
 
       {/* Bottom user section */}
       <div className="mt-auto pt-6 border-t border-blue-700">
-        {expanded && (
-          <>
-            <p className="text-sm">Ali Haider</p>
-            <p className="text-xs text-gray-300">Admin</p>
-          </>
-        )}
-      </div>
+  {expanded && (
+    <>
+      <p className="text-sm">Ali Haider</p>
+      <p className="text-xs text-gray-300 mb-3">Admin</p>
+    </>
+  )}
+
+  {/* 🔴 Logout Button */}
+  <button
+    onClick={logout}
+    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-600 transition w-full"
+  >
+    <span>🚪</span>
+    {expanded && <span>Logout</span>}
+  </button>
+</div>
     </div>
   );
 }
