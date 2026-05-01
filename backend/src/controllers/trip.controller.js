@@ -3,23 +3,49 @@ const { prisma } = require("../db/prisma");
 // ✅ Create Trip
 const createTrip = async (req, res) => {
   try {
-    const { bus, route, income, expense, date, day, userId } = req.body;
+    const {
+      busId,
+      routeId,
+      income,
+      expense,
+      date,
+      travelTime,
+      notes,
+      driverId,
+    } = req.body;
 
-    if (!userId) {
-      return res.status(400).json({ error: "userId is required" });
+    // ✅ Always get from auth middleware (NOT req.body)
+    const userId = req.user.id;
+
+    if (!busId || !routeId) {
+      return res.status(400).json({ error: "busId and routeId are required" });
     }
 
     const trip = await prisma.trip.create({
       data: {
-        bus,
-        route,
         income: Number(income),
         expense: Number(expense),
         date: new Date(date),
-        day,
+        travelTime: travelTime ? Number(travelTime) : null,
+        notes,
+
+        // ✅ Relations
+        bus: {
+          connect: { id: busId },
+        },
+        route: {
+          connect: { id: routeId },
+        },
         user: {
           connect: { id: userId },
         },
+
+        // ✅ Optional driver relation (if you add it)
+        ...(driverId && {
+          driver: {
+            connect: { id: driverId },
+          },
+        }),
       },
     });
 
@@ -33,8 +59,17 @@ const createTrip = async (req, res) => {
 // ✅ Get Trips
 const getTrips = async (req, res) => {
   try {
+    const userId = req.user.id;
+
     const trips = await prisma.trip.findMany({
+      where: { userId },
       orderBy: { date: "desc" },
+
+      include: {
+        bus: true,
+        route: true,
+        // driver: true (if added)
+      },
     });
 
     res.json(trips);

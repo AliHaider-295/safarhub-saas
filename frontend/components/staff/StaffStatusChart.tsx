@@ -20,10 +20,13 @@ type ChartData = {
 
 export default function StaffStatusChart() {
   const [data, setData] = useState<ChartData[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   const COLORS = ["#22c55e", "#ef4444"];
 
   useEffect(() => {
+    setMounted(true);
+
     const fetchData = async () => {
       try {
         const token = getToken();
@@ -53,42 +56,48 @@ export default function StaffStatusChart() {
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm w-full">
+    <div className="bg-white p-4 rounded-xl shadow-sm w-full min-w-0">
       <h2 className="mb-3 font-semibold">Staff Status</h2>
 
-      {/* ✅ USE THIS (critical fix) */}
-      <ChartContainer height={260}>
-        {total > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie data={data} dataKey="value">
-                {data.map((item) => (
-                  <Cell
-                    key={item.name} // ✅ stable key
-                    fill={
-                      item.name === "Active" ? "#22c55e" : "#ef4444"
-                    }
+      {/* 🔥 CRITICAL FIX */}
+      <div className="w-full min-w-0">
+        <ChartContainer height={260}>
+          {!mounted ? (
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+              Loading...
+            </div>
+          ) : total > 0 ? (
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <PieChart>
+                <Pie data={data} dataKey="value">
+                  {data.map((item) => (
+                    <Cell
+                      key={item.name}
+                      fill={
+                        item.name === "Active" ? "#22c55e" : "#ef4444"
+                      }
+                    />
+                  ))}
+
+                  <Label
+                    value={`${total} Staff`}
+                    position="center"
+                    className="text-sm fill-gray-700 font-semibold"
                   />
-                ))}
+                </Pie>
 
-                <Label
-                  value={`${total} Staff`}
-                  position="center"
-                  className="text-sm fill-gray-700 font-semibold"
-                />
-              </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+              No staff data available
+            </div>
+          )}
+        </ChartContainer>
+      </div>
 
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-            No staff data available
-          </div>
-        )}
-      </ChartContainer>
-
-      {/* ✅ LEGEND */}
+      {/* Legend */}
       <div className="flex justify-center gap-6 mt-3 text-xs">
         {data.map((item, i) => (
           <div key={item.name} className="flex items-center gap-1">

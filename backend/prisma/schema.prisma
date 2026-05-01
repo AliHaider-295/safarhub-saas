@@ -63,10 +63,19 @@ model Route {
 }
 
 model Trip {
-  id        String   @id @default(uuid())
-  date      DateTime
-  income    Float
-  expense   Float
+  id   String   @id @default(uuid())
+  date DateTime
+
+  income  Float
+  expense Float
+
+  // 🔥 ADD THESE
+  travelTime Int? // in minutes
+  notes      String?
+
+  // 🔥 Optional but powerful
+  driverId String?
+
   createdAt DateTime @default(now())
 
   busId   String

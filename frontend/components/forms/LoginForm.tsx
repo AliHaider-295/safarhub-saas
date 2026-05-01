@@ -3,13 +3,13 @@
 
 import { Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 
-import { setToken } from "@/utils/auth";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
+import { setToken } from "@/utils/auth";
 import { getApiErrorMessage, login } from "@/services/auth.service";
 
 export default function LoginForm() {
@@ -19,52 +19,49 @@ export default function LoginForm() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (isSubmitting) return;
-
+  
     const form = new FormData(event.currentTarget);
-    const email = String(form.get("email") || "").trim();
+    const email = String(form.get("email") || "").trim().toLowerCase();
     const password = String(form.get("password") || "");
-
+  
     if (!email || !password) {
       toast.error("Email and password are required");
       return;
     }
-
+  
+    if (!email.includes("@")) {
+      toast.error("Enter a valid email");
+      return;
+    }
+  
     setIsSubmitting(true);
-
+  
     try {
-      console.log("[AUTH][LOGIN] Request", { email });
-
       const response = await login({ email, password });
-
-      console.log("FULL RESPONSE:", response);
-      
-      // ✅ FIXED
-      const token = response?.token;
-      
-      if (token) {
-        setToken(token);
-        console.log("Saved token:", token);
-      } else {
-        console.error("Token missing in response:", response);
-        toast.error("Login failed: token not received");
-        return;
+  
+      if (!response || !response.token) {
+        throw new Error("Invalid login response");
       }
-      
-      toast.success("Login successful");
-      router.push("/dashboard");
+  
+      setToken(response.token);
 
-      // ✅ Redirect after login
-      router.push("/dashboard");
+// 🔥 ADD THIS LINE (CRITICAL)
+document.cookie = `token=${response.token}; path=/; max-age=604800; SameSite=Lax`;
 
+toast.success("Login successful");
+
+// small delay helps middleware detect cookie
+setTimeout(() => {
+  router.replace("/dashboard");
+}, 100);
+  
     } catch (error) {
-      console.error("[AUTH][LOGIN] Error", error);
       const message = getApiErrorMessage(error);
       toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
   };
-
   return (
     <form
       className="flex flex-col gap-4 sm:gap-5"
