@@ -1,12 +1,15 @@
 const jwt = require("jsonwebtoken");
 const { prisma } = require("../db/prisma");
 
-const protect = async (req, res, next) => {
+
+const protect = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
+    console.log("AUTH HEADER:", authHeader);
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Not authorized" });
+      return res.status(401).json({ error: "No token" });
     }
 
     const token = authHeader.split(" ")[1];
@@ -16,33 +19,16 @@ const protect = async (req, res, next) => {
       audience: "safarhub-users",
     });
 
-    if (!decoded || !decoded.sub) {
-      return res.status(401).json({ error: "Invalid token payload" });
-    }
+    console.log("DECODED:", decoded);
 
-    // ✅ Check user in DB
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.sub },
-    });
+    // 🔥 THIS LINE IS CRITICAL
+    req.user = decoded;
 
-    if (!user) {
-      return res.status(401).json({ error: "User not found" });
-    }
-
-    // ✅ Attach clean user object
-    req.user = {
-      id: user.id,
-      email: user.email,
-    };
+    console.log("USER SET:", req.user);
 
     next();
   } catch (error) {
-    console.error("JWT Error:", error.message);
-
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "Token expired" });
-    }
-
+    console.error("JWT ERROR:", error.message);
     return res.status(401).json({ error: "Invalid token" });
   }
 };

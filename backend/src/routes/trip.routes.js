@@ -2,11 +2,11 @@ const express = require("express");
 const router = express.Router();
 
 const { createTrip, getTrips } = require("../controllers/trip.controller");
+const { protect } = require("../middleware/auth.middleware");
 
-// 👉 Create trip
-router.post("/", createTrip);
+console.log("🔥 TRIP ROUTES ACTIVE");
 
-// 👉 Get all trips
-router.get("/", getTrips);
+router.post("/", protect, createTrip);
+router.get("/", protect, getTrips);
 
 module.exports = router;

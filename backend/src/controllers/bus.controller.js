@@ -1,31 +1,36 @@
 const { prisma } = require("../db/prisma");
 
-// ✅ Create Bus
+/* =========================
+   ➕ CREATE BUS
+========================= */
 const createBus = async (req, res) => {
   try {
     const { busNumber, type, capacity, status, driverName } = req.body;
 
-    // ✅ get user from token (NOT frontend)
     const userId = req.user.sub;
 
-    if (!busNumber || !type || !capacity || !status || !driverName) {
-      return res.status(400).json({ error: "All fields are required" });
+    // ✅ REQUIRED FIELDS (match frontend)
+    if (!busNumber) {
+      return res.status(400).json({ error: "Bus number is required" });
     }
 
-    const parsedCapacity = Number(capacity);
-    if (isNaN(parsedCapacity)) {
+    // ✅ SAFE NUMBER
+    const parsedCapacity = capacity ? Number(capacity) : 0;
+
+    if (capacity && isNaN(parsedCapacity)) {
       return res.status(400).json({ error: "Capacity must be a number" });
     }
 
     const bus = await prisma.bus.create({
       data: {
         busNumber,
-        type,
+        type: type || "AC",
         capacity: parsedCapacity,
-        status: status.toUpperCase(),
-        driverName,
+        status: (status || "ACTIVE").toUpperCase(),
+        driverName: driverName || "Not Assigned", // ✅ safe fallback
+        // 🔐 USER LINK
         user: {
-          connect: { id: userId }, // ✅ safe now
+          connect: { id: userId },
         },
       },
     });
@@ -37,13 +42,15 @@ const createBus = async (req, res) => {
   }
 };
 
-// ✅ Get All Buses
+/* =========================
+   📦 GET BUSES (USER BASED)
+========================= */
 const getBuses = async (req, res) => {
   try {
     const userId = req.user.sub;
 
     const buses = await prisma.bus.findMany({
-      where: { userId }, // ✅ filter by user
+      where: { userId },
       orderBy: { createdAt: "desc" },
     });
 
@@ -54,16 +61,18 @@ const getBuses = async (req, res) => {
   }
 };
 
-// ✅ Delete Bus
+/* =========================
+   ❌ DELETE BUS
+========================= */
 const deleteBus = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.sub;
 
-    await prisma.bus.delete({
+    await prisma.bus.deleteMany({
       where: {
         id,
-        userId, // ✅ prevents deleting others data
+        userId,
       },
     });
 
@@ -73,29 +82,31 @@ const deleteBus = async (req, res) => {
     res.status(500).json({ error: "Failed to delete bus" });
   }
 };
-// ✅ Update Bus
+
+/* =========================
+   ✏️ UPDATE BUS
+========================= */
 const updateBus = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.sub;
 
-    const { busNumber, type, capacity, status, driverName } = req.body;
+    const { busNumber, type, capacity, status } = req.body;
 
-    const updated = await prisma.bus.update({
+    const updated = await prisma.bus.updateMany({
       where: {
         id,
-        userId, // ✅ protect ownership
+        userId,
       },
       data: {
-        busNumber,
-        type,
-        capacity: Number(capacity),
-        status,
-        driverName,
+        ...(busNumber && { busNumber }),
+        ...(type && { type }),
+        ...(capacity && { capacity: Number(capacity) }),
+        ...(status && { status: status.toUpperCase() }),
       },
     });
 
-    res.json(updated);
+    res.json({ message: "Bus updated successfully", updated });
   } catch (error) {
     console.error("Update Bus Error:", error);
     res.status(500).json({ error: "Failed to update bus" });
