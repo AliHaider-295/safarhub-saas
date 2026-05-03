@@ -35,7 +35,7 @@ export default function AddStaffModal({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("safarhub_token")}`,
         },
         body: JSON.stringify(form),
       });
