@@ -17,7 +17,7 @@ export default function AddRouteModal({ open, onClose, onSuccess }: any) {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("safarhub_token");
 
       const res = await fetch("http://localhost:5000/api/routes", {
         method: "POST",

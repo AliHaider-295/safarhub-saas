@@ -51,12 +51,15 @@ const createTrip = async (req, res) => {
     });
 
     const routeExists = await prisma.route.findFirst({
-      where: { id: routeId, userId },
+      where: { id: routeId },
     });
+if (!busExists) {
+  return res.status(400).json({ error: "Invalid bus" });
+}
 
-    if (!busExists || !routeExists) {
-      return res.status(400).json({ error: "Invalid bus or route" });
-    }
+if (!routeExists) {
+  return res.status(400).json({ error: "Invalid route" });
+}
 
     const trip = await prisma.trip.create({
       data: {
@@ -91,7 +94,7 @@ const getTrips = async (req, res) => {
     const userId = req.user.id;
 
     const trips = await prisma.trip.findMany({
-      where: { userId },
+      where: { userId: req.user.sub },
       orderBy: { date: "desc" },
 
       include: {

@@ -108,11 +108,11 @@ export default function AddRecordModal({
 
     const { busId, routeId, date, income, expense } = form;
 
-    if (!form.busId?.trim() || !form.routeId?.trim()) {
-      console.log("INVALID IDS:", form);
-      toast.error("Select valid bus and route");
-      return;
-    }
+   if (!form.busId?.trim() || !form.routeId?.trim()) {
+  console.log("INVALID IDS:", form);
+  toast.error("Select valid bus and route");
+  return;
+}
 
     if (isNaN(new Date(date).getTime())) {
       toast.error("Invalid date");
@@ -170,15 +170,11 @@ export default function AddRecordModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* BUS */}
           <select
-  name="busId"
-  value={form.busId}
-  onChange={(e) =>
-    setForm((prev) => ({
-      ...prev,
-      busId: e.target.value,
-    }))
-  }
->
+            name="busId"
+            value={form.busId}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+          >
             <option value="">Select Bus</option>
 
             {buses.length === 0 ? (
@@ -194,15 +190,11 @@ export default function AddRecordModal({
 
           {/* ROUTE */}
           <select
-  name="routeId"
-  value={form.routeId}
-  onChange={(e) =>
-    setForm((prev) => ({
-      ...prev,
-      routeId: e.target.value,
-    }))
-  }
->
+            name="routeId"
+            value={form.routeId}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+          >
             <option value="">Select Route</option>
 
             {routes.length === 0 ? (
