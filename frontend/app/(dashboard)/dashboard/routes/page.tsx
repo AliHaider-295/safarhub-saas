@@ -25,7 +25,7 @@ export default function RoutesPage() {
   // ✅ Fetch routes (shared for cards + table)
   const fetchRoutes = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("safarhub_token");
 
       const res = await fetch("http://localhost:5000/api/routes", {
         headers: {
@@ -47,18 +47,23 @@ export default function RoutesPage() {
 
   // ✅ Derived stats (SaaS logic)
   const total = routes.length;
-  const active = routes.filter((r) => r.status === "ACTIVE").length;
 
+  const active = routes.filter(
+    (r) => r.status?.toUpperCase() === "ACTIVE"
+  ).length;
+  
+  const inactive = routes.filter(
+    (r) => r.status?.toUpperCase() === "INACTIVE"
+  ).length;
+  
   const totalDistance = routes.reduce(
     (sum, r) => sum + (r.distance || 0),
     0
   );
-
-  const popularRoute =
-    routes.length > 0
-      ? `${routes[0].from} → ${routes[0].to}`
-      : "-";
-
+  const sampleRoute =
+  routes.length > 0
+    ? `${routes[0].from} → ${routes[0].to}`
+    : "No route";
   return (
     <main className="p-4 space-y-4">
 
@@ -75,55 +80,47 @@ export default function RoutesPage() {
       </div>
 
       {/* Cards (NOW DYNAMIC) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
 
-        <RoutesCard
-          title="Total Routes"
-          value={total}
-          description="All routes"
-          icon={<Map />}
-        />
+      <RoutesCard
+  title="Total Routes"
+  value={total}
+  description="All routes"
+  icon={<Map />}
+  color="blue"
+/>
 
-        <RoutesCard
-          title="Active"
-          value={active}
-          description="Running"
-          icon={<Route />}
-          color="green"
-        />
+<RoutesCard
+  title="Active Routes"
+  value={active}
+  description="Running routes"
+  icon={<Route />}
+  color="green"
+/>
 
-        <RoutesCard
-          title="Distance"
-          value={`${totalDistance} km`}
-          description="Total"
-          icon={<BarChart3 />}
-          color="blue"
-        />
+<RoutesCard
+  title="Inactive Routes"
+  value={inactive}
+  description="Stopped routes"
+  icon={<Route />}
+  color="red"
+/>
 
-        <RoutesCard
-          title="Popular"
-          value={popularRoute}
-          description="Top route"
-          icon={<Star />}
-          color="red"
-        />
+<RoutesCard
+  title="Total Distance"
+  value={`${totalDistance} km`}
+  description="Across system"
+  icon={<BarChart3 />}
+  color="purple"
+/>
 
-        {/* Optional placeholders */}
-        <RoutesCard
-          title="Morning"
-          value="-"
-          description="Coming soon"
-          icon={<Sunrise />}
-          color="yellow"
-        />
-
-        <RoutesCard
-          title="Evening"
-          value="-"
-          description="Coming soon"
-          icon={<Sunset />}
-          color="purple"
-        />
+<RoutesCard
+  title="Sample Route"
+  value={sampleRoute}
+  description="Example path"
+  icon={<Star />}
+  color="yellow"
+/>
 
       </div>
 

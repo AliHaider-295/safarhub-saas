@@ -73,6 +73,7 @@ const createRoute = async (req, res) => {
       data: {
         from,
         to,
+         status: "ACTIVE",
         distance: Number(distance),
         user: {
           connect: { id: req.user.sub } // ✅ THIS LINE FIXES YOUR ERROR
