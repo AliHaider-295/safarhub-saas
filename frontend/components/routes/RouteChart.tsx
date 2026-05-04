@@ -23,19 +23,24 @@ export default function RouteChart() {
   const [data, setData] = useState<RouteData[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+
+  
+  useEffect(() => {
+    setMounted(true); // ✅ FIX
+  }, []);
+  
   useEffect(() => {
     const fetchChart = async () => {
       try {
         const token = localStorage.getItem("token");
-
+  
         const res = await fetch("http://localhost:5000/api/routes/usage", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
+  
         const result = await res.json();
-
         setData(Array.isArray(result) ? result : []);
       } catch (error) {
         console.error("Chart fetch error:", error);
@@ -43,7 +48,7 @@ export default function RouteChart() {
         setLoading(false);
       }
     };
-
+  
     fetchChart();
   }, []);
 

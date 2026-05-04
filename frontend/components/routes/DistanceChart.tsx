@@ -24,13 +24,17 @@ export default function DistanceChart() {
   const COLORS = ["#22c55e", "#f59e0b", "#ef4444"];
 
   useEffect(() => {
+    setMounted(true); // ✅ FIX
+  }, []);
+  
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetch(
           "http://localhost:5000/api/routes/distance-stats"
         );
         const result = await res.json();
-
+  
         setData(Array.isArray(result) ? result : []);
       } catch (err) {
         console.error("Distance chart error:", err);
@@ -38,7 +42,7 @@ export default function DistanceChart() {
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, []);
 

@@ -63,7 +63,7 @@ const getRoutes = async (req, res) => {
 // ✅ CREATE route
 const createRoute = async (req, res) => {
   try {
-    const { from, to, distance } = req.body;
+    const { from, to, distance, status } = req.body;
 
     if (!from || !to || !distance) {
       return res.status(400).json({ error: "All fields required" });
@@ -73,7 +73,7 @@ const createRoute = async (req, res) => {
       data: {
         from,
         to,
-         status: "ACTIVE",
+         status,
         distance: Number(distance),
         user: {
           connect: { id: req.user.sub } // ✅ THIS LINE FIXES YOUR ERROR

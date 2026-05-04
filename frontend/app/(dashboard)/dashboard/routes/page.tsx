@@ -21,6 +21,7 @@ export default function RoutesPage() {
   const [open, setOpen] = useState(false);
   const [routes, setRoutes] = useState<any[]>([]);
   const [refresh, setRefresh] = useState(false);
+  
 
   // ✅ Fetch routes (shared for cards + table)
   const fetchRoutes = async () => {
@@ -41,9 +42,13 @@ export default function RoutesPage() {
     }
   };
 
+
   useEffect(() => {
     fetchRoutes();
   }, [refresh]);
+  const triggerRefresh = () => {
+    setRefresh(prev => !prev);
+   }
 
   // ✅ Derived stats (SaaS logic)
   const total = routes.length;
@@ -131,7 +136,7 @@ export default function RoutesPage() {
       </div>
 
       {/* Table */}
-      <RoutesTable refresh={refresh} />
+      <RoutesTable refresh={refresh} onChange={triggerRefresh} />
 
       {/* Modal */}
       <AddRouteModal
