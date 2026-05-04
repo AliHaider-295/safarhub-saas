@@ -40,7 +40,7 @@ const createTrip = async (req, res) => {
       return res.status(400).json({ error: "Values must be positive" });
     }
 
-    const parsedTravelTime = travelTime ? Number(travelTime) : null;
+    const parsedTravelTime = travelTime !== undefined ? Number(travelTime) : null;
     if (travelTime && isNaN(parsedTravelTime)) {
       return res.status(400).json({ error: "Invalid travel time" });
     }
@@ -51,7 +51,7 @@ const createTrip = async (req, res) => {
     });
 
     const routeExists = await prisma.route.findFirst({
-      where: { id: routeId },
+      where: { id: routeId, userId  },
     });
 if (!busExists) {
   return res.status(400).json({ error: "Invalid bus" });
@@ -91,16 +91,14 @@ if (!routeExists) {
 // ✅ Get Trips
 const getTrips = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.sub;
 
     const trips = await prisma.trip.findMany({
-      where: { userId: req.user.sub },
+      where: { userId },
       orderBy: { date: "desc" },
-
       include: {
         bus: true,
         route: true,
-        // driver: true (if added)
       },
     });
 
@@ -110,6 +108,35 @@ const getTrips = async (req, res) => {
     res.status(500).json({ error: "Fetch failed" });
   }
 };
+const getTripsSummary = async (req, res) => {
+  try {
+    const userId = req.user.sub;
+
+    const result = await prisma.trip.aggregate({
+      where: {
+        userId: userId, // 🔥 filters per user
+      },
+      _sum: {
+        income: true,
+        expense: true,
+      },
+      _count: true, // optional (useful for dashboard)
+    });
+
+    const totalIncome = result._sum.income || 0;
+    const totalExpense = result._sum.expense || 0;
+
+    res.json({
+      totalIncome,
+      totalExpense,
+      totalProfit: totalIncome - totalExpense,
+      totalTrips: result._count, // optional bonus
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch summary" });
+  }
+};
 
 // ✅ IMPORTANT EXPORT
-module.exports = { createTrip, getTrips };
+module.exports = { createTrip, getTrips,getTripsSummary };

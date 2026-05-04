@@ -1,28 +1,49 @@
+// ✅ Dashboard Stats
 const { prisma } = require("../db/prisma");
 
-// ✅ Dashboard Stats
+// ✅ Dashboard Stats (CLEAN VERSION)
 const getDashboardStats = async (req, res) => {
   try {
+    const userId = req.user.sub;
+
     const [revenueData, expenseData, buses, tripsCount] =
       await Promise.all([
-        prisma.trip.aggregate({ _sum: { income: true } }),
-        prisma.trip.aggregate({ _sum: { expense: true } }),
-        prisma.bus.count(),
-        prisma.trip.count(),
+        prisma.trip.aggregate({
+          where: { userId },
+          _sum: { income: true },
+        }),
+
+        prisma.trip.aggregate({
+          where: { userId },
+          _sum: { expense: true },
+        }),
+
+        prisma.bus.count({
+          where: { userId },
+        }),
+
+        prisma.trip.count({
+          where: { userId },
+        }),
       ]);
 
     const revenue = revenueData._sum.income || 0;
     const expense = expenseData._sum.expense || 0;
     const profit = revenue - expense;
 
-    const passengers = tripsCount * 30;
-
+    // ⚠️ IMPORTANT:
+    // Replace this later with real passenger table
+    const passengers = await prisma.passenger.count({
+      where: { userId }
+    });
     res.json({
       revenue,
       profit,
-      passengers,
       buses,
+      passengers,
+      trips: tripsCount,
     });
+
   } catch (error) {
     console.error("Dashboard Stats Error:", error);
     res.status(500).json({ error: "Something went wrong" });

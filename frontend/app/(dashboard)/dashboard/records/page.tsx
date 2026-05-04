@@ -4,9 +4,12 @@ import { useState } from "react";
 import AddRecordModal from "@/components/records/AddRecordModal";
 import RecordsCards from "@/components/records/RecordsCards";
 import { Button } from "@/components/ui/Button";
+import { useSummary } from "@/hooks/useSummary";
 
 export default function RecordsPage() {
   const [open, setOpen] = useState(false);
+
+  const { summary, refetch } = useSummary();
 
   return (
     <div className="p-6 space-y-6">
@@ -21,14 +24,19 @@ export default function RecordsPage() {
       </div>
 
       {/* Cards */}
-      <RecordsCards income={0} expense={0} />
+      <RecordsCards
+        income={summary.totalIncome}
+        expense={summary.totalExpense}
+        profit={summary.totalProfit}
+      />
 
       {/* Modal */}
       <AddRecordModal
         open={open}
         onClose={() => setOpen(false)}
         onSuccess={() => {
-          console.log("refresh data here later");
+          setOpen(false);
+          refetch(); // 🔥 refresh data
         }}
       />
 
