@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MoreVertical } from "lucide-react";
+import { authFetch } from "@/lib/api";
 
 export default function BusesTable({
   buses,
@@ -15,14 +16,13 @@ export default function BusesTable({
 
   const rowsPerPage = 5;
 
-  // 🔍 Filter (updated field name)
+  // 🔍 Filter
   const filtered = buses.filter((bus) => {
     const name = bus.busNumber ?? "";
     console.log("Buses data:", buses);
     return name.toLowerCase().includes(search.toLowerCase());
   });
 
-  // 📄 Pagination
   const totalPages = Math.ceil(filtered.length / rowsPerPage);
 
   const paginatedData = filtered.slice(
@@ -30,26 +30,32 @@ export default function BusesTable({
     page * rowsPerPage
   );
 
-  // 🎨 Status styles (UPDATED for enum)
   const statusStyles = {
     ACTIVE: "bg-green-100 text-green-700",
     MAINTENANCE: "bg-yellow-100 text-yellow-700",
     INACTIVE: "bg-red-100 text-red-700",
   };
 
-  // ❌ Delete bus
+  // ❌ Delete bus (UPDATED ONLY HERE)
   const handleDelete = async (id: string) => {
-    await fetch(`http://localhost:5000/api/buses/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      const res = await authFetch(`/buses/${id}`, {
+        method: "DELETE",
+      });
 
-    fetchBuses(); // refresh
+      if (!res.ok) {
+        throw new Error("Failed to delete bus");
+      }
+
+      fetchBuses(); // refresh
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
   };
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm">
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h2 className="font-semibold">All Buses</h2>
 
@@ -65,7 +71,6 @@ export default function BusesTable({
         />
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[700px]">
 
@@ -102,7 +107,6 @@ export default function BusesTable({
 
                 <td className="text-right flex justify-end gap-2">
 
-                  {/* Delete */}
                   <button
                     onClick={() => handleDelete(bus.id)}
                     className="text-red-500 text-xs"
@@ -110,7 +114,6 @@ export default function BusesTable({
                     Delete
                   </button>
 
-                  {/* Menu (future edit) */}
                   <button className="p-1 hover:bg-gray-100 rounded">
                     <MoreVertical size={16} />
                   </button>
@@ -124,7 +127,6 @@ export default function BusesTable({
         </table>
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-between mt-4 text-sm">
 
         <p className="text-gray-500">

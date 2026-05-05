@@ -9,7 +9,7 @@ import {
   UserCheck,
 } from "lucide-react";
 
-import { getToken } from "@/utils/auth"; // ✅ FIX
+import { authFetch } from "@/lib/api"; // ✅ FIXED (use your system)
 
 type Staff = {
   id: string;
@@ -18,7 +18,7 @@ type Staff = {
 };
 
 type Props = {
-  refreshKey?: number; // ✅ allow refresh
+  refreshKey?: number;
 };
 
 export default function StaffCards({ refreshKey }: Props) {
@@ -27,14 +27,7 @@ export default function StaffCards({ refreshKey }: Props) {
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        const token = getToken();
-        if (!token) return;
-
-        const res = await fetch("http://localhost:5000/api/staff", {
-          headers: {
-            Authorization: `Bearer ${token}`, // ✅ FIXED
-          },
-        });
+        const res = await authFetch("/staff"); // ✅ CLEAN + SAFE
 
         const data = await res.json();
         setStaff(Array.isArray(data) ? data : []);
@@ -44,7 +37,7 @@ export default function StaffCards({ refreshKey }: Props) {
     };
 
     fetchStaff();
-  }, [refreshKey]); // ✅ refresh works now
+  }, [refreshKey]);
 
   const getStats = (role: string) => {
     const filtered = staff.filter((s) => s.role === role);
@@ -58,41 +51,11 @@ export default function StaffCards({ refreshKey }: Props) {
   };
 
   const cards = [
-    {
-      title: "Drivers",
-      role: "Driver",
-      icon: User,
-      color: "bg-blue-100 text-blue-600",
-      progress: "bg-blue-500",
-    },
-    {
-      title: "Conductors",
-      role: "Conductor",
-      icon: UserCheck,
-      color: "bg-green-100 text-green-600",
-      progress: "bg-green-500",
-    },
-    {
-      title: "Support Staff",
-      role: "Support",
-      icon: Wrench,
-      color: "bg-purple-100 text-purple-600",
-      progress: "bg-purple-500",
-    },
-    {
-      title: "Helpers",
-      role: "Helper",
-      icon: Users,
-      color: "bg-orange-100 text-orange-600",
-      progress: "bg-orange-500",
-    },
-    {
-      title: "Security",
-      role: "Security",
-      icon: ShieldCheck,
-      color: "bg-teal-100 text-teal-600",
-      progress: "bg-teal-500",
-    },
+    { title: "Drivers", role: "Driver", icon: User, color: "bg-blue-100 text-blue-600", progress: "bg-blue-500" },
+    { title: "Conductors", role: "Conductor", icon: UserCheck, color: "bg-green-100 text-green-600", progress: "bg-green-500" },
+    { title: "Support Staff", role: "Support", icon: Wrench, color: "bg-purple-100 text-purple-600", progress: "bg-purple-500" },
+    { title: "Helpers", role: "Helper", icon: Users, color: "bg-orange-100 text-orange-600", progress: "bg-orange-500" },
+    { title: "Security", role: "Security", icon: ShieldCheck, color: "bg-teal-100 text-teal-600", progress: "bg-teal-500" },
   ];
 
   return (
@@ -106,10 +69,9 @@ export default function StaffCards({ refreshKey }: Props) {
 
         return (
           <div
-            key={card.role} // ✅ FIXED (stable key)
+            key={card.role}
             className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition"
           >
-            {/* Top */}
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">{card.title}</p>
@@ -123,24 +85,16 @@ export default function StaffCards({ refreshKey }: Props) {
               </div>
             </div>
 
-            {/* Stats */}
             <div className="mt-2 flex justify-between text-[11px] text-gray-500">
               <span>
-                Active:{" "}
-                <span className="text-green-600 font-medium">
-                  {stats.active}
-                </span>
+                Active: <span className="text-green-600 font-medium">{stats.active}</span>
               </span>
 
               <span>
-                Inactive:{" "}
-                <span className="text-red-500 font-medium">
-                  {stats.inactive}
-                </span>
+                Inactive: <span className="text-red-500 font-medium">{stats.inactive}</span>
               </span>
             </div>
 
-            {/* Progress */}
             <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
                 className={`h-full ${card.progress}`}

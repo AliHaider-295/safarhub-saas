@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { authFetch } from "@/lib/api";
+
 
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import RevenueChart from "@/components/dashboard/RevenueChart";
@@ -22,13 +24,44 @@ export default function DashboardPage() {
 
   const [openBusModal, setOpenBusModal] = useState(false);
 
+  // ✅ NEW STATE (for buses + passengers)
+  const [stats, setStats] = useState({
+    buses: 0,
+    passengers: 0,
+  });
+
   const { summary, loading } = useSummary();
 
+  // ✅ AUTH CHECK
   useEffect(() => {
     const token = localStorage.getItem("safarhub_token");
     if (!token) router.replace("/login");
   }, [router]);
 
+  // ✅ FETCH DASHBOARD STATS (IMPORTANT FIX)
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await authFetch("/dashboard/stats");
+  
+        if (!res.ok) {
+          throw new Error("Failed to fetch stats");
+        }
+  
+        const data = await res.json();
+  
+        setStats({
+          buses: data?.buses ?? 0,
+          passengers: data?.passengers ?? 0,
+        });
+  
+      } catch (err) {
+        console.error("Stats fetch error:", err);
+      }
+    };
+  
+    fetchStats();
+  }, []);
   return (
     <main className="h-screen overflow-hidden px-4 py-4 space-y-4">
 
@@ -67,17 +100,17 @@ export default function DashboardPage() {
           type="profit"
         />
 
-        {/* STILL STATIC (for now) */}
+        {/* ✅ NOW DYNAMIC */}
         <DashboardCard
           title="Passengers"
-          value={0}
+          value={stats.passengers}
           icon={<Users />}
           type="passengers"
         />
 
         <DashboardCard
           title="Buses"
-          value={0}
+          value={stats.buses}
           icon={<Bus />}
           type="buses"
         />

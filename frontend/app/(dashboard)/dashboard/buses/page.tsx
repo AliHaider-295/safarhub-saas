@@ -16,54 +16,47 @@ import {
   Users,
 } from "lucide-react";
 
+import { authFetch } from "@/lib/api"; // ✅ ADDED
+
 export default function BusesPage() {
   const [openModal, setOpenModal] = useState(false);
   const [buses, setBuses] = useState<any[]>([]);
 
-  // ✅ Fetch buses from backend
+  // ✅ Fetch buses (UPDATED ONLY API LAYER)
   const fetchBuses = async () => {
     try {
-      const token = localStorage.getItem("safarhub_token");
-  
-      if (!token) {
-        console.warn("No token found");
-        return;
-      }
-  
-      const res = await fetch("http://localhost:5000/api/buses", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-  
+      const res = await authFetch("/buses"); // 🔥 CLEAN SHORT API
+
       if (!res.ok) {
         throw new Error("Failed to fetch buses");
       }
-  
+
       const data = await res.json();
-  
+
       console.log("Fetched buses:", data);
-  
+
       setBuses(
         Array.isArray(data)
           ? data
           : data?.buses || data?.data || []
       );
-  
+
     } catch (err) {
       console.error("Fetch error:", err);
       setBuses([]);
     }
   };
+
   useEffect(() => {
     fetchBuses();
-  
+
     const onFocus = () => fetchBuses();
     window.addEventListener("focus", onFocus);
-  
+
     return () => window.removeEventListener("focus", onFocus);
   }, []);
-  // ✅ Stats calculation (dynamic cards)
+
+  // ✅ Stats calculation (UNCHANGED LOGIC)
   const total = buses.length;
   const active = buses.filter(b => b.status === "ACTIVE").length;
   const maintenance = buses.filter(b => b.status === "MAINTENANCE").length;
@@ -85,7 +78,7 @@ export default function BusesPage() {
         </button>
       </div>
 
-      {/* Cards (NOW DYNAMIC) */}
+      {/* Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <BusesCard title="Total Buses" value={total.toString()} description="All buses" icon={<Bus />} />
         <BusesCard title="Active" value={active.toString()} description="Running" icon={<CheckCircle />} type="active" />
@@ -96,13 +89,13 @@ export default function BusesPage() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div className="w-full h-[300px] min-w-0">
-  <BusStatusChart buses={buses} />
-</div>
+        <div className="w-full h-[300px] min-w-0">
+          <BusStatusChart buses={buses} />
+        </div>
 
-<div className="w-full h-[300px] min-w-0">
-  <FleetChart buses={buses} />
-</div>
+        <div className="w-full h-[300px] min-w-0">
+          <FleetChart buses={buses} />
+        </div>
       </div>
 
       {/* Table */}
@@ -112,7 +105,7 @@ export default function BusesPage() {
       <AddBusModal
         open={openModal}
         onClose={() => setOpenModal(false)}
-        fetchBuses={fetchBuses} // 🔥 IMPORTANT
+        fetchBuses={fetchBuses}
       />
 
     </main>

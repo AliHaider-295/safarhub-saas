@@ -1,5 +1,5 @@
 "use client";
-
+import { authFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { Bus, MapPin } from "lucide-react";
 
@@ -14,12 +14,35 @@ type Trip = {
 export default function RecentTrips() {
   const [trips, setTrips] = useState<Trip[]>([]);
 
+ 
   useEffect(() => {
-    fetch("http://localhost:5000/api/dashboard/recent-trips")
-      .then((res) => res.json())
-      .then((data) => setTrips(data));
+    const fetchTrips = async () => {
+      try {
+        const res = await authFetch("/dashboard/recent-trips");
+  
+        if (!res.ok) {
+          throw new Error("Failed to fetch trips");
+        }
+  
+        const data = await res.json();
+  
+        console.log("TRIPS:", data);
+  
+        // ✅ SAFETY FIX (unchanged logic)
+        if (Array.isArray(data)) {
+          setTrips(data);
+        } else {
+          setTrips([]);
+        }
+  
+      } catch (err) {
+        console.error("Trips fetch error:", err);
+        setTrips([]);
+      }
+    };
+  
+    fetchTrips();
   }, []);
-
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-GB", {
       day: "2-digit",

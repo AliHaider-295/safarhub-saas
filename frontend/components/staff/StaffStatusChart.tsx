@@ -10,8 +10,8 @@ import {
   Label,
 } from "recharts";
 
-import { getToken } from "@/utils/auth";
 import ChartContainer from "@/components/common/ChartContainer";
+import { authFetch } from "@/lib/api"; // ✅ ADDED
 
 type ChartData = {
   name: string;
@@ -29,14 +29,8 @@ export default function StaffStatusChart() {
 
     const fetchData = async () => {
       try {
-        const token = getToken();
-        if (!token) return;
-
-        const res = await fetch("http://localhost:5000/api/staff/stats", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // ✅ REPLACED fetch + token logic
+        const res = await authFetch("/staff/stats");
 
         const result = await res.json();
         if (!res.ok) return;
@@ -59,7 +53,6 @@ export default function StaffStatusChart() {
     <div className="bg-white p-4 rounded-xl shadow-sm w-full min-w-0">
       <h2 className="mb-3 font-semibold">Staff Status</h2>
 
-      {/* 🔥 CRITICAL FIX */}
       <div className="w-full min-w-0">
         <ChartContainer height={260}>
           {!mounted ? (

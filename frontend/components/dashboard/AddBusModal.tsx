@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
+import { authFetch } from "@/lib/api"; // ✅ added
 
 type Props = {
   open: boolean;
@@ -45,14 +46,9 @@ export default function AddBusModal({ open, onClose, onSuccess }: Props) {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("safarhub_token");
-
-      const res = await fetch("http://localhost:5000/api/buses", {
+      // ✅ ONLY CHANGE: fetch → authFetch
+      const res = await authFetch("/buses", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           ...form,
           capacity: Number(form.capacity),
@@ -74,6 +70,7 @@ export default function AddBusModal({ open, onClose, onSuccess }: Props) {
         capacity: "",
         status: "ACTIVE",
       });
+
     } catch (error) {
       toast.error("Failed to add bus");
     } finally {
@@ -89,6 +86,7 @@ export default function AddBusModal({ open, onClose, onSuccess }: Props) {
         <h2 className="text-lg font-bold">Add Bus</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
+
           <input
             name="busNumber"
             placeholder="Bus Number (e.g BUS-101)"
@@ -120,10 +118,12 @@ export default function AddBusModal({ open, onClose, onSuccess }: Props) {
             <Button type="button" onClick={onClose}>
               Cancel
             </Button>
+
             <Button type="submit" disabled={loading}>
               {loading ? "Saving..." : "Save"}
             </Button>
           </div>
+
         </form>
       </div>
     </div>

@@ -12,7 +12,7 @@ const {
 // Routes
 router.post("/", protect, createBus);
 router.get("/", protect, getBuses);
-router.delete("/:id", deleteBus);
-router.put("/:id", updateBus);
+router.delete("/:id",protect, deleteBus);
+router.put("/:id",protect, updateBus);
 
 module.exports = router;

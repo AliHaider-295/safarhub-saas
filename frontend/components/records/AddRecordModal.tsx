@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
+import { authFetch } from "@/lib/api"; // ✅ added
 
 type Bus = {
   id: string;
@@ -42,11 +43,9 @@ export default function AddRecordModal({
     expense: "",
   });
 
-  // ✅ RESET + FETCH WHEN MODAL OPENS
   useEffect(() => {
     if (!open) return;
 
-    // reset form each time modal opens
     setForm({
       busId: "",
       routeId: "",
@@ -57,16 +56,14 @@ export default function AddRecordModal({
 
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("safarhub_token");
-
         const [busRes, routeRes] = await Promise.all([
-          fetch("http://localhost:5000/api/buses", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("http://localhost:5000/api/routes", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          authFetch("/buses"),     // ✅ FIXED
+          authFetch("/routes"),    // ✅ FIXED
         ]);
+
+        if (!busRes.ok || !routeRes.ok) {
+          throw new Error("Failed to fetch data");
+        }
 
         const busJson = await busRes.json();
         const routeJson = await routeRes.json();
@@ -81,6 +78,7 @@ export default function AddRecordModal({
 
         setBuses(busList);
         setRoutes(routeList);
+
       } catch (err) {
         console.error(err);
         toast.error("Failed to load buses/routes");
@@ -90,7 +88,6 @@ export default function AddRecordModal({
     fetchData();
   }, [open]);
 
-  // ✅ INPUT HANDLER
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -102,37 +99,32 @@ export default function AddRecordModal({
     }));
   };
 
-  // ✅ SUBMIT
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const { busId, routeId, date, income, expense } = form;
 
-   if (!form.busId?.trim() || !form.routeId?.trim()) {
-  console.log("INVALID IDS:", form);
-  toast.error("Select valid bus and route");
-  return;
-}
+    if (!busId?.trim() || !routeId?.trim()) {
+      console.log("INVALID IDS:", form);
+      toast.error("Select valid bus and route");
+      return;
+    }
 
     if (isNaN(new Date(date).getTime())) {
       toast.error("Invalid date");
       return;
     }
+
     console.log("SUBMIT DEBUG:", {
-      busId: form.busId,
-      routeId: form.routeId,
+      busId,
+      routeId,
     });
+
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("safarhub_token");
-
-      const res = await fetch("http://localhost:5000/api/trips", {
+      const res = await authFetch("/trips", { // ✅ FIXED
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           busId,
           routeId,
@@ -152,6 +144,7 @@ export default function AddRecordModal({
 
       onClose();
       onSuccess();
+
     } catch (err) {
       console.error(err);
       toast.error("Failed to add record");
@@ -165,10 +158,11 @@ export default function AddRecordModal({
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl w-full max-w-lg p-6 space-y-5">
+
         <h2 className="text-xl font-bold">Add Record</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* BUS */}
+
           <select
             name="busId"
             value={form.busId}
@@ -188,7 +182,6 @@ export default function AddRecordModal({
             )}
           </select>
 
-          {/* ROUTE */}
           <select
             name="routeId"
             value={form.routeId}
@@ -209,7 +202,6 @@ export default function AddRecordModal({
             )}
           </select>
 
-          {/* DATE */}
           <input
             type="date"
             name="date"
@@ -218,7 +210,6 @@ export default function AddRecordModal({
             className="w-full border p-2 rounded"
           />
 
-          {/* INCOME */}
           <input
             type="number"
             name="income"
@@ -228,7 +219,6 @@ export default function AddRecordModal({
             className="w-full border p-2 rounded"
           />
 
-          {/* EXPENSE */}
           <input
             type="number"
             name="expense"
@@ -238,8 +228,8 @@ export default function AddRecordModal({
             className="w-full border p-2 rounded"
           />
 
-          {/* BUTTONS */}
           <div className="flex justify-end gap-2 pt-2">
+
             <Button type="button" onClick={onClose} variant="outline">
               Cancel
             </Button>
@@ -247,8 +237,11 @@ export default function AddRecordModal({
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : "Save"}
             </Button>
+
           </div>
+
         </form>
+
       </div>
     </div>
   );

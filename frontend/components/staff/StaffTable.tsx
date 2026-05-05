@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Eye, Pencil, Trash } from "lucide-react";
-import { getToken } from "@/utils/auth";
+import { authFetch } from "@/lib/api"; // ✅ ADDED
 
 type Staff = {
   id: string;
@@ -16,14 +16,10 @@ type Staff = {
 export default function StaffTable() {
   const [staff, setStaff] = useState<Staff[]>([]);
 
-  // ✅ Fetch from backend
+  // ✅ Fetch from backend (UPDATED)
   const fetchStaff = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/staff", {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
-      });
+      const res = await authFetch("/staff"); // 🔥 CLEAN API CALL
 
       const data = await res.json();
       setStaff(Array.isArray(data) ? data : []);

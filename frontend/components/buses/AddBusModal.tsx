@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { authFetch } from "@/lib/api";
 
 export default function AddBusModal({
   open,
@@ -13,17 +14,19 @@ export default function AddBusModal({
 }) {
   const [form, setForm] = useState({
     busNumber: "",
-    type: "AC", // ✅ default fixed
+    type: "AC",
     capacity: "",
     status: "ACTIVE",
     driverName: "",
   });
 
-  const [loading, setLoading] = useState(false); // ✅ loading state
+  const [loading, setLoading] = useState(false);
 
   if (!open) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -31,7 +34,6 @@ export default function AddBusModal({
   };
 
   const handleSubmit = async () => {
-    // ✅ basic validation
     if (!form.busNumber.trim()) {
       alert("Bus number is required");
       return;
@@ -45,16 +47,11 @@ export default function AddBusModal({
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("safarhub_token");
+      console.log("Submitting form:", form);
 
-      console.log("Submitting form:", form); // 🔍 debug
-
-      const res = await fetch("http://localhost:5000/api/buses", {
+      // ✅ ONLY CHANGE: fetch → authFetch
+      const res = await authFetch("/buses", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ required
-        },
         body: JSON.stringify({
           ...form,
           capacity: Number(form.capacity),
@@ -63,7 +60,7 @@ export default function AddBusModal({
 
       const data = await res.json();
 
-      console.log("API Response:", data); // 🔍 debug
+      console.log("API Response:", data);
 
       if (!res.ok) {
         console.error("API Error:", data);
@@ -72,7 +69,6 @@ export default function AddBusModal({
 
       alert("✅ Bus added successfully");
 
-      // ✅ reset form
       setForm({
         busNumber: "",
         type: "AC",
@@ -81,7 +77,6 @@ export default function AddBusModal({
         driverName: "",
       });
 
-      // ✅ refresh buses list
       await fetchBuses();
 
       onClose();
@@ -97,7 +92,7 @@ export default function AddBusModal({
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white w-full max-w-md rounded-xl p-6 shadow-lg">
-        
+
         <h2 className="text-lg font-semibold mb-4">Add New Bus</h2>
 
         <div className="space-y-3">
@@ -105,7 +100,7 @@ export default function AddBusModal({
           <input
             name="busNumber"
             placeholder="Bus Number"
-            value={form.busNumber} // ✅ controlled input
+            value={form.busNumber}
             className="w-full border p-2 rounded-lg"
             onChange={handleChange}
           />

@@ -1,4 +1,5 @@
 "use client";
+import { authFetch } from "@/lib/api";
 
 import { useEffect, useState } from "react";
 import {
@@ -22,20 +23,29 @@ export default function RevenueChart() {
   const [data, setData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
 
+
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/dashboard/chart");
+        const res = await authFetch("/dashboard/chart");
+  
+        if (!res.ok) {
+          throw new Error("Failed to fetch chart data");
+        }
+  
         const result = await res.json();
-
+  
         setData(Array.isArray(result) ? result : []);
+  
       } catch (err) {
         console.error("Chart fetch error:", err);
+        setData([]);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, []);
 

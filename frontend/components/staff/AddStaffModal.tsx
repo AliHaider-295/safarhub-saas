@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
+import { authFetch } from "@/lib/api"; // ✅ correct import
 
 export default function AddStaffModal({
   open,
@@ -31,27 +32,20 @@ export default function AddStaffModal({
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:5000/api/staff", {
+      await authFetch("/api/staff", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("safarhub_token")}`,
+          "Content-Type": "application/json", // ✅ IMPORTANT
         },
         body: JSON.stringify(form),
       });
 
-      const data = await res.json();
+      onSuccess();
+      onClose();
 
-      if (!res.ok) {
-        alert(data.error || "Failed to add staff");
-        return;
-      }
-
-      onSuccess(); // 🔥 refresh list
-      onClose();   // close modal
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Something went wrong");
+      alert(error.message || "Failed to add staff");
     } finally {
       setLoading(false);
     }
@@ -59,11 +53,8 @@ export default function AddStaffModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-      {/* Modal */}
       <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-5">
 
-        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Add Staff</h2>
           <button onClick={onClose}>
@@ -71,23 +62,15 @@ export default function AddStaffModal({
           </button>
         </div>
 
-        {/* Form */}
         <div className="space-y-3">
-
-          {/* Name */}
           <input
             name="name"
             placeholder="Full Name"
-            className="w-full border px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border px-3 py-2 rounded-lg text-sm"
             onChange={handleChange}
           />
 
-          {/* Role */}
-          <select
-            name="role"
-            className="w-full border px-3 py-2 rounded-lg text-sm"
-            onChange={handleChange}
-          >
+          <select name="role" className="w-full border px-3 py-2 rounded-lg text-sm" onChange={handleChange}>
             <option>Driver</option>
             <option>Conductor</option>
             <option>Support</option>
@@ -95,7 +78,6 @@ export default function AddStaffModal({
             <option>Security</option>
           </select>
 
-          {/* Phone */}
           <input
             name="phone"
             placeholder="Phone Number"
@@ -103,31 +85,21 @@ export default function AddStaffModal({
             onChange={handleChange}
           />
 
-          {/* Status */}
-          <select
-            name="status"
-            className="w-full border px-3 py-2 rounded-lg text-sm"
-            onChange={handleChange}
-          >
+          <select name="status" className="w-full border px-3 py-2 rounded-lg text-sm" onChange={handleChange}>
             <option value="ACTIVE">Active</option>
             <option value="INACTIVE">Inactive</option>
           </select>
-
         </div>
 
-        {/* Footer */}
         <div className="flex justify-end gap-2 mt-5">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm rounded-lg border"
-          >
+          <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border">
             Cancel
           </button>
 
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white"
           >
             {loading ? "Adding..." : "Add Staff"}
           </button>

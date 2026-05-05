@@ -4,9 +4,13 @@ const { prisma } = require("../db/prisma");
 // ✅ Dashboard Stats (CLEAN VERSION)
 const getDashboardStats = async (req, res) => {
   try {
-    const userId = req.user.sub;
+    const userId = req.user?.sub;
 
-    const [revenueData, expenseData, buses, tripsCount] =
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const [revenueData, expenseData, buses, tripsCount, passengers] =
       await Promise.all([
         prisma.trip.aggregate({
           where: { userId },
@@ -25,18 +29,20 @@ const getDashboardStats = async (req, res) => {
         prisma.trip.count({
           where: { userId },
         }),
-      ]);
 
+        prisma.passenger.count({
+          where: {
+            userId: userId, // must match exactly
+          },
+        }),
+      ]);
+      console.log("USER ID:", userId);
+      console.log("PASSENGERS:", passengers);
     const revenue = revenueData._sum.income || 0;
     const expense = expenseData._sum.expense || 0;
     const profit = revenue - expense;
 
-    // ⚠️ IMPORTANT:
-    // Replace this later with real passenger table
-    const passengers = await prisma.passenger.count({
-      where: { userId }
-    });
-    res.json({
+    return res.json({
       revenue,
       profit,
       buses,
@@ -49,7 +55,6 @@ const getDashboardStats = async (req, res) => {
     res.status(500).json({ error: "Something went wrong" });
   }
 };
-
 // ✅ Recent Trips
 const getRecentTrips = async (req, res) => {
   try {
