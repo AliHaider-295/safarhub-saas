@@ -12,6 +12,7 @@ const createTrip = async (req, res) => {
       travelTime,
       notes,
       driverId,
+      passengers // 👈 ADD THIS
     } = req.body;
 
     if (!req.user || !req.user.sub) {
@@ -61,23 +62,24 @@ if (!routeExists) {
   return res.status(400).json({ error: "Invalid route" });
 }
 
-    const trip = await prisma.trip.create({
-      data: {
-        income: parsedIncome,
-        expense: parsedExpense,
-        date: parsedDate,
-        travelTime: parsedTravelTime,
-        notes: notes || null,
+const trip = await prisma.trip.create({
+  data: {
+    income: parsedIncome,
+    expense: parsedExpense,
+    date: parsedDate,
+    travelTime: parsedTravelTime,
+    notes: notes || null,
+    passengers: parsedPassengers, // 👈 THIS FIXES EVERYTHING
 
-        bus: { connect: { id: busId } },
-        route: { connect: { id: routeId } },
-        user: { connect: { id: userId } },
+    bus: { connect: { id: busId } },
+    route: { connect: { id: routeId } },
+    user: { connect: { id: userId } },
 
-        ...(driverId && {
-          driver: { connect: { id: driverId } },
-        }),
-      },
-    });
+    ...(driverId && {
+      driver: { connect: { id: driverId } },
+    }),
+  },
+});
 
     console.log("[CREATE TRIP]", { userId, busId, routeId });
 
