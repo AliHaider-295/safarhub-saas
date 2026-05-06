@@ -12,36 +12,50 @@ const createTrip = async (req, res) => {
       travelTime,
       notes,
       driverId,
-      passengers // 👈 ADD THIS
+      passengers,
     } = req.body;
 
+    // 🔐 Auth check
     if (!req.user || !req.user.sub) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     const userId = req.user.sub;
 
+    // 🔐 Required fields check
     if (!busId || !routeId || !date || income === undefined || expense === undefined) {
       return res.status(400).json({ error: "All required fields missing" });
     }
 
+    // 📅 Date validation
     const parsedDate = new Date(date);
     if (isNaN(parsedDate.getTime())) {
       return res.status(400).json({ error: "Invalid date format" });
     }
 
+    // 🔢 Number parsing
     const parsedIncome = Number(income);
     const parsedExpense = Number(expense);
+    const parsedPassengers = Number(passengers);
 
     if (isNaN(parsedIncome) || isNaN(parsedExpense)) {
       return res.status(400).json({ error: "Income/Expense must be numbers" });
     }
 
-    if (parsedIncome < 0 || parsedExpense < 0) {
-      return res.status(400).json({ error: "Values must be positive" });
+    if (isNaN(parsedPassengers)) {
+      return res.status(400).json({ error: "Passengers must be a valid number" });
     }
 
-    const parsedTravelTime = travelTime !== undefined ? Number(travelTime) : null;
+    if (parsedIncome < 0 || parsedExpense < 0 || parsedPassengers < 0) {
+      return res.status(400).json({ error: "Values cannot be negative" });
+    }
+
+    // ⏱ Travel time
+    const parsedTravelTime =
+      travelTime !== undefined && travelTime !== null
+        ? Number(travelTime)
+        : null;
+
     if (travelTime && isNaN(parsedTravelTime)) {
       return res.status(400).json({ error: "Invalid travel time" });
     }
@@ -52,41 +66,43 @@ const createTrip = async (req, res) => {
     });
 
     const routeExists = await prisma.route.findFirst({
-      where: { id: routeId, userId  },
+      where: { id: routeId, userId },
     });
-if (!busExists) {
-  return res.status(400).json({ error: "Invalid bus" });
-}
 
-if (!routeExists) {
-  return res.status(400).json({ error: "Invalid route" });
-}
+    if (!busExists) {
+      return res.status(400).json({ error: "Invalid bus" });
+    }
 
-const trip = await prisma.trip.create({
-  data: {
-    income: parsedIncome,
-    expense: parsedExpense,
-    date: parsedDate,
-    travelTime: parsedTravelTime,
-    notes: notes || null,
-    passengers: parsedPassengers, // 👈 THIS FIXES EVERYTHING
+    if (!routeExists) {
+      return res.status(400).json({ error: "Invalid route" });
+    }
 
-    bus: { connect: { id: busId } },
-    route: { connect: { id: routeId } },
-    user: { connect: { id: userId } },
+    // 🚀 Create trip
+    const trip = await prisma.trip.create({
+      data: {
+        income: parsedIncome,
+        expense: parsedExpense,
+        date: parsedDate,
+        travelTime: parsedTravelTime,
+        notes: notes || null,
+        passengers: parsedPassengers,
 
-    ...(driverId && {
-      driver: { connect: { id: driverId } },
-    }),
-  },
-});
+        bus: { connect: { id: busId } },
+        route: { connect: { id: routeId } },
+        user: { connect: { id: userId } },
+
+        ...(driverId && {
+          driver: { connect: { id: driverId } },
+        }),
+      },
+    });
 
     console.log("[CREATE TRIP]", { userId, busId, routeId });
 
-    res.status(201).json(trip);
+    return res.status(201).json(trip);
   } catch (error) {
     console.error("CREATE TRIP ERROR:", error);
-    res.status(500).json({ error: "Create failed" });
+    return res.status(500).json({ error: "Create failed" });
   }
 };
 
@@ -115,27 +131,31 @@ const getTripsSummary = async (req, res) => {
     const userId = req.user.sub;
 
     const result = await prisma.trip.aggregate({
-      where: {
-        userId: userId, // 🔥 filters per user
-      },
+      where: { userId },
+
       _sum: {
         income: true,
         expense: true,
+        passengers: true,
       },
-      _count: true, // optional (useful for dashboard)
+
+      _count: true,
     });
 
     const totalIncome = result._sum.income || 0;
     const totalExpense = result._sum.expense || 0;
+    const totalPassengers = result._sum.passengers || 0;
+    const totalTrips = result._count || 0;
 
     res.json({
       totalIncome,
       totalExpense,
       totalProfit: totalIncome - totalExpense,
-      totalTrips: result._count, // optional bonus
+      totalTrips,
+      totalPassengers,
     });
   } catch (err) {
-    console.error(err);
+    console.error("SUMMARY ERROR:", err);
     res.status(500).json({ error: "Failed to fetch summary" });
   }
 };

@@ -41,6 +41,7 @@ export default function AddRecordModal({
     date: "",
     income: "",
     expense: "",
+    passengers: "",
   });
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export default function AddRecordModal({
       date: "",
       income: "",
       expense: "",
+      passengers: "",
     });
 
     const fetchData = async () => {
@@ -131,6 +133,7 @@ export default function AddRecordModal({
           date,
           income: Number(income),
           expense: Number(expense),
+          passengers: Number(form.passengers || 0),
         }),
       });
 
@@ -227,6 +230,14 @@ export default function AddRecordModal({
             onChange={handleChange}
             className="w-full border p-2 rounded"
           />
+          <input
+  type="number"
+  name="passengers"
+  placeholder="Passengers"
+  value={form.passengers}
+  onChange={handleChange}
+  className="w-full border p-2 rounded"
+/>
 
           <div className="flex justify-end gap-2 pt-2">
 

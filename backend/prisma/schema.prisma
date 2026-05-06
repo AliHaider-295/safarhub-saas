@@ -6,6 +6,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 enum BusStatus {
   ACTIVE
   INACTIVE
@@ -16,6 +17,7 @@ enum RouteStatus {
   ACTIVE
   INACTIVE
 }
+
 model User {
   id          String   @id @default(uuid())
   companyName String
@@ -51,12 +53,12 @@ model Bus {
 }
 
 model Route {
-  id        String   @id @default(uuid())
+  id        String      @id @default(uuid())
   from      String
   to        String
   distance  Int
-  status   RouteStatus @default(ACTIVE)
-  createdAt DateTime @default(now())
+  status    RouteStatus @default(ACTIVE)
+  createdAt DateTime    @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -65,12 +67,15 @@ model Route {
 
   @@index([userId])
 }
+
 model Trip {
   id   String   @id @default(uuid())
   date DateTime
 
   income  Float
   expense Float
+
+  passengers Int? // ✅ SIMPLE & CORRECT
 
   travelTime Int?
   notes      String?
@@ -86,8 +91,6 @@ model Trip {
   bus   Bus   @relation(fields: [busId], references: [id])
   route Route @relation(fields: [routeId], references: [id])
   user  User  @relation(fields: [userId], references: [id])
-
-  passengers Passenger[]   // ✅ ADD THIS LINE
 
   @@index([userId])
   @@index([busId])
@@ -106,14 +109,4 @@ model Staff {
   user   User   @relation(fields: [userId], references: [id])
 
   @@index([userId])
-}
-model Passenger {
-  id      String @id @default(uuid())
-  name    String
-  tripId  String
-  userId  String
-
-  trip Trip @relation(fields: [tripId], references: [id])
-
-  createdAt DateTime @default(now())
 }

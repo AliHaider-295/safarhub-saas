@@ -10,7 +10,7 @@ const getDashboardStats = async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const [revenueData, expenseData, buses, tripsCount, passengers] =
+    const [revenueData, expenseData, buses, tripsCount, passengersData] =
       await Promise.all([
         prisma.trip.aggregate({
           where: { userId },
@@ -30,16 +30,16 @@ const getDashboardStats = async (req, res) => {
           where: { userId },
         }),
 
-        prisma.passenger.count({
-          where: {
-            userId: userId, // must match exactly
-          },
+        prisma.trip.aggregate({
+          where: { userId },
+          _sum: { passengers: true },
         }),
       ]);
-      console.log("USER ID:", userId);
-      console.log("PASSENGERS:", passengers);
-    const revenue = revenueData._sum.income || 0;
-    const expense = expenseData._sum.expense || 0;
+
+    const revenue = revenueData?._sum?.income || 0;
+    const expense = expenseData?._sum?.expense || 0;
+    const passengers = passengersData?._sum?.passengers || 0;
+
     const profit = revenue - expense;
 
     return res.json({
@@ -49,7 +49,6 @@ const getDashboardStats = async (req, res) => {
       passengers,
       trips: tripsCount,
     });
-
   } catch (error) {
     console.error("Dashboard Stats Error:", error);
     res.status(500).json({ error: "Something went wrong" });
