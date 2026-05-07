@@ -30,27 +30,58 @@ export default function AddStaffModal({
 
   const handleSubmit = async () => {
     try {
+      // Phone cleanup
+      const cleanPhone = form.phone.replace(/[-\s]/g, "");
+  
+      // Pakistan phone validation
+      const phoneRegex = /^(\+92|0)?3\d{9}$/;
+  
+      if (!phoneRegex.test(cleanPhone)) {
+        alert("Enter a valid Pakistan phone number");
+        return;
+      }
+  
       setLoading(true);
-
-      await authFetch("/api/staff", {
+  
+      const res = await authFetch("/staff", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", // ✅ IMPORTANT
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          phone: cleanPhone,
+        }),
       });
-
+  
+      const data = await res.json();
+  
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to add staff");
+      }
+  
+      // Refresh table/chart
       onSuccess();
+  
+      // Close modal
       onClose();
-
+  
+      // Reset form
+      setForm({
+        name: "",
+        role: "Driver",
+        phone: "",
+        status: "ACTIVE",
+      });
+  
     } catch (error: any) {
       console.error(error);
+  
       alert(error.message || "Failed to add staff");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-5">
@@ -79,8 +110,11 @@ export default function AddStaffModal({
           </select>
 
           <input
+            type="tel"
             name="phone"
+            maxLength={14}
             placeholder="Phone Number"
+            value={form.phone}
             className="w-full border px-3 py-2 rounded-lg text-sm"
             onChange={handleChange}
           />

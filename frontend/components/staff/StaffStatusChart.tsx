@@ -18,34 +18,37 @@ type ChartData = {
   value: number;
 };
 
-export default function StaffStatusChart() {
+export default function StaffStatusChart({
+  refreshKey,
+}: {
+  refreshKey: number;
+}) {
   const [data, setData] = useState<ChartData[]>([]);
   const [mounted, setMounted] = useState(false);
 
   const COLORS = ["#22c55e", "#ef4444"];
 
+  const fetchData = async () => {
+    try {
+      const res = await authFetch("/staff/stats");
+  
+      const result = await res.json();
+  
+      if (!res.ok) return;
+  
+      setData([
+        { name: "Active", value: Number(result?.active) || 0 },
+        { name: "Inactive", value: Number(result?.inactive) || 0 },
+      ]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
   useEffect(() => {
     setMounted(true);
-
-    const fetchData = async () => {
-      try {
-        // ✅ REPLACED fetch + token logic
-        const res = await authFetch("/staff/stats");
-
-        const result = await res.json();
-        if (!res.ok) return;
-
-        setData([
-          { name: "Active", value: Number(result?.active) || 0 },
-          { name: "Inactive", value: Number(result?.inactive) || 0 },
-        ]);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
     fetchData();
-  }, []);
+  }, [refreshKey]);
 
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
