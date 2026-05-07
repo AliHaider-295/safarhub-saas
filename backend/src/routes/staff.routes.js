@@ -7,6 +7,7 @@ const {
   updateStaff,
   deleteStaff,
   getStaffStats,
+  getStaffTrend,
 } = require("../controllers/staff.controller");
 
 const { protect } = require("../middleware/auth.middleware");
@@ -19,6 +20,7 @@ router.post("/", protect, createStaff);
 router.get("/stats", protect, getStaffStats);
 
 // dynamic routes AFTER
+router.get("/trend", protect, getStaffTrend);
 router.put("/:id", protect, updateStaff);
 router.delete("/:id", protect, deleteStaff);
 console.log(" Staff routes loaded");

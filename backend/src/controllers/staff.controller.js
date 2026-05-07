@@ -141,6 +141,52 @@ const getStaffStats = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch stats" });
   }
 };
+const getStaffTrend = async (req, res) => {
+  try {
+    const userId = req.user.sub;
+
+    const staff = await prisma.staff.findMany({
+      where: { userId },
+      select: {
+        createdAt: true,
+      },
+    });
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const trend = months.map((month) => ({
+      month,
+      staff: 0,
+    }));
+
+    staff.forEach((member) => {
+      const date = new Date(member.createdAt);
+      const monthIndex = date.getMonth();
+
+      trend[monthIndex].staff += 1;
+    });
+
+    res.json(trend);
+  } catch (error) {
+    console.error("Trend Error:", error);
+    res.status(500).json({
+      error: "Failed to fetch trend",
+    });
+  }
+};
 
 module.exports = {
   createStaff,
@@ -148,4 +194,5 @@ module.exports = {
   updateStaff,
   deleteStaff,
   getStaffStats,
+  getStaffTrend,
 };

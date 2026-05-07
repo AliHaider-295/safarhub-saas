@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import {
   LineChart,
   Line,
@@ -8,50 +9,108 @@ import {
   YAxis,
   ResponsiveContainer,
   Tooltip,
+  CartesianGrid,
 } from "recharts";
 
 import ChartContainer from "@/components/common/ChartContainer";
+import { authFetch } from "@/lib/api";
 
-export default function StaffTrendChart() {
+type TrendData = {
+  month: string;
+  staff: number;
+};
+
+export default function StaffTrendChart({
+  refreshKey,
+}: {
+  refreshKey: number;
+}) {
   const [mounted, setMounted] = useState(false);
+
+  const [data, setData] = useState<TrendData[]>([]);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
 
-  const data = [
-    { id: "jan", month: "Jan", staff: 140 },
-    { id: "feb", month: "Feb", staff: 155 },
-    { id: "mar", month: "Mar", staff: 170 },
-    { id: "apr", month: "Apr", staff: 185 },
-    { id: "may", month: "May", staff: 196 },
-  ];
+    const fetchTrend = async () => {
+      try {
+        const res = await authFetch("/staff/trend");
+
+        const result = await res.json();
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch trend data");
+        }
+
+        setData(Array.isArray(result) ? result : []);
+      } catch (error) {
+        console.error("Trend fetch error:", error);
+      }
+    };
+
+    fetchTrend();
+  }, [refreshKey]);
+
+  const totalGrowth = data.reduce(
+    (sum, item) => sum + item.staff,
+    0
+  );
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm w-full min-w-0">
-      <h2 className="mb-3 font-semibold">Staff Growth</h2>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-semibold text-gray-800">
+          Staff Growth
+        </h2>
 
-      {/* ✅ CRITICAL FIX */}
-      <div className="min-w-0 w-full">
+        <span className="text-xs text-gray-500">
+          Total Added: {totalGrowth}
+        </span>
+      </div>
+
+      {/* Chart */}
+      <div className="w-full min-w-0">
         <ChartContainer height={260}>
           {!mounted ? (
-            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+            <div className="flex items-center justify-center h-full text-sm text-gray-400">
               Loading...
             </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+          ) : data.length > 0 ? (
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              minWidth={0}
+            >
               <LineChart data={data}>
-                <XAxis dataKey="month" />
-                <YAxis />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 12 }}
+                />
+
+                <YAxis tick={{ fontSize: 12 }} />
+
                 <Tooltip />
+
                 <Line
                   type="monotone"
                   dataKey="staff"
                   stroke="#3b82f6"
-                  strokeWidth={2}
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
                 />
               </LineChart>
             </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full text-sm text-gray-400">
+              No trend data available
+            </div>
           )}
         </ChartContainer>
       </div>
