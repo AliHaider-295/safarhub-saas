@@ -15,7 +15,7 @@ export default function StaffPage() {
   const fetchStaff = () => {
     setRefreshKey((prev) => prev + 1);
   };
-
+  console.log("refreshKey changed", refreshKey);
   return (
     <div className="space-y-6 w-full min-w-0"> {/* ✅ IMPORTANT */}
 
@@ -49,7 +49,10 @@ export default function StaffPage() {
       </div>
 
       {/* Table */}
-      <StaffTable refreshKey={refreshKey} /> {/* ✅ FIXED */}
+      <StaffTable
+  refreshKey={refreshKey}
+  onDeleteSuccess={fetchStaff}
+/>
 
       {/* Modal */}
       <AddStaffModal

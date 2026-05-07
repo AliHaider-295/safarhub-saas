@@ -41,7 +41,9 @@ export default function StaffCards({ refreshKey }: Props) {
 
   const getStats = (role: string) => {
     const filtered = staff.filter((s) => s.role === role);
-    const active = filtered.filter((s) => s.status === "ACTIVE").length;
+    const active = filtered.filter(
+      (s) => s.status?.toLowerCase() === "active"
+    ).length;
 
     return {
       value: filtered.length,

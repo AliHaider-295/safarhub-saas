@@ -31,29 +31,28 @@ export default function StaffTable({
       console.error("Fetch staff error:", error);
     }
   };
-
+  
   const handleDelete = async (id: string) => {
     try {
-      const confirmDelete = confirm(
-        "Are you sure you want to delete this staff member?"
-      );
-
+      const confirmDelete = confirm("Delete staff?");
       if (!confirmDelete) return;
-
+  
       const res = await authFetch(`/staff/${id}`, {
         method: "DELETE",
       });
-
-      if (!res.ok) throw new Error("Failed to delete staff");
-
-      // ✅ GLOBAL REFRESH (IMPORTANT)
+  
+      if (!res.ok) throw new Error("Delete failed");
+  
+      // 🔥 FORCE LOCAL SYNC FIRST (important)
+      setStaff((prev) => prev.filter((item) => item.id !== id));
+  
+      // 🔥 THEN TRIGGER GLOBAL REFRESH
       onDeleteSuccess?.();
-
-    } catch (error) {
-      console.error("Delete error:", error);
+  
+    } catch (err) {
+      console.error(err);
     }
   };
-
   useEffect(() => {
     fetchStaff();
   }, [refreshKey]);
