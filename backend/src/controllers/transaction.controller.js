@@ -46,7 +46,33 @@ const createTransaction = async (req, res) => {
     });
   }
 };
+const getTransactions = async (req, res) => {
+  try {
+    const transactions =
+      await prisma.transaction.findMany({
+        include: {
+          bus: true,
+          route: true,
+          staff: true,
+        },
+
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+    res.json(transactions);
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "Failed to fetch transactions",
+    });
+  }
+};
 
 module.exports = {
   createTransaction,
+  getTransactions,
 };
