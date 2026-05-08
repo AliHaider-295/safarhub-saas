@@ -7,7 +7,7 @@ type Props = {
   expense: number;
 };
 
-export default function RecordsCards({ income, expense }: Props) {
+export default function TransactionCards({ income, expense }: Props) {
   const profit = income - expense;
 
   return (

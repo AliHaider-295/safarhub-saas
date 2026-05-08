@@ -28,8 +28,9 @@ model User {
   buses  Bus[]
   routes Route[]
   trips  Trip[]
+  staff  Staff[]
 
-  staff Staff[]
+  transactions Transaction[]
 }
 
 model Bus {
@@ -46,6 +47,8 @@ model Bus {
   user   User   @relation(fields: [userId], references: [id])
 
   trips Trip[]
+
+  transactions Transaction[]
 
   @@unique([id, userId]) // 🔥 required for secure queries
   @@unique([busNumber, userId]) // 🔥 optional but recommended
@@ -64,6 +67,8 @@ model Route {
   user   User   @relation(fields: [userId], references: [id])
 
   trips Trip[]
+
+  transactions Transaction[]
 
   @@index([userId])
 }
@@ -108,5 +113,46 @@ model Staff {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
+  transactions Transaction[]
+
   @@index([userId])
+}
+
+enum TransactionType {
+  income
+  expense
+}
+
+model Transaction {
+  id String @id @default(cuid())
+
+  type     TransactionType
+  category String
+  amount   Float
+
+  paymentMethod String?
+  description   String?
+
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  // 🔗 Relations (optional links)
+  busId   String?
+  routeId String?
+  staffId String?
+
+  createdById String
+
+  // 🔗 Relations
+  bus   Bus?   @relation(fields: [busId], references: [id])
+  route Route? @relation(fields: [routeId], references: [id])
+  staff Staff? @relation(fields: [staffId], references: [id])
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([createdById])
+  @@index([busId])
+  @@index([routeId])
+  @@index([staffId])
+  @@index([date])
 }

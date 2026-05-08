@@ -65,11 +65,24 @@ export default function DistanceChart() {
         ) : data.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={data} dataKey="value" innerRadius={50} outerRadius={80}>
-                {data.map((item, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
+             <Pie
+  data={data}
+  dataKey="value"
+  innerRadius={50}
+  outerRadius={80}
+  paddingAngle={3}
+  label={({ name, percent }) =>
+    `${name} (${(percent * 100).toFixed(0)}%)`
+  }
+  labelLine={false}
+>
+  {data.map((item, i) => (
+    <Cell
+      key={i}
+      fill={COLORS[i % COLORS.length]}
+    />
+  ))}
+</Pie>
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>

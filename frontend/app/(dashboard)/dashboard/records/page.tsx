@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import AddRecordModal from "@/components/records/AddRecordModal";
-import RecordsCards from "@/components/records/RecordsCards";
+import AddTransactionModal from "@/components/records/AddTransactionModal";
+import TransactionCards from "@/components/records/TransactionCards";
 import { Button } from "@/components/ui/Button";
 import { useSummary } from "@/hooks/useSummary";
 
@@ -16,22 +16,22 @@ export default function RecordsPage() {
 
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Records</h1>
+        <h1 className="text-2xl font-bold">Transaction Records</h1>
 
         <Button onClick={() => setOpen(true)}>
-          + Add Record
+          + Add Transaction
         </Button>
       </div>
 
       {/* Cards */}
-      <RecordsCards
+      <TransactionCards
         income={summary.totalIncome}
         expense={summary.totalExpense}
         profit={summary.totalProfit}
       />
 
       {/* Modal */}
-      <AddRecordModal
+      <AddTransactionModal
         open={open}
         onClose={() => setOpen(false)}
         onSuccess={() => {

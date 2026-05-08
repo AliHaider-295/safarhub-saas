@@ -361,3 +361,20 @@ You are not copying design.
 You are:
 
 Building a real SaaS dashboard for business users
+Bus
+ └── fuel expenses
+
+Routes
+ └── ticket income
+
+Staff
+ └── salary expense
+
+Bookings
+ └── revenue
+
+All
+ ↓
+Transactions Table
+ ↓
+Dashboard Analytics
