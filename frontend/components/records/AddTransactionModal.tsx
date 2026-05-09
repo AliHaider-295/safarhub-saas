@@ -34,6 +34,7 @@ export default function AddTransactionModal({
   const [buses, setBuses] = useState<Bus[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [staff, setStaff] = useState<any[]>([]);
 
   const [form, setForm] = useState({
     busId: "",
@@ -70,9 +71,10 @@ export default function AddTransactionModal({
   
     const fetchData = async () => {
       try {
-        const [busRes, routeRes] = await Promise.all([
+        const [busRes, routeRes, staffRes] = await Promise.all([
           authFetch("/buses"),
           authFetch("/routes"),
+          authFetch("/staff"),
         ]);
   
         if (!busRes.ok || !routeRes.ok) {
@@ -89,6 +91,13 @@ export default function AddTransactionModal({
         const routeList = Array.isArray(routeJson)
           ? routeJson
           : routeJson?.data || routeJson?.routes || [];
+          const staffJson = await staffRes.json();
+
+         const staffList = Array.isArray(staffJson)
+        ? staffJson
+       : staffJson?.data || staffJson?.staff || [];
+
+        setStaff(staffList);
   
         setBuses(busList);
         setRoutes(routeList);
@@ -130,33 +139,37 @@ export default function AddTransactionModal({
     } = form;
 
     if (!type || !category || !amount || !date) {
-      console.log("INVALID IDS:", form);
-      toast.error("Select valid bus and route");
+      console.log("FORM DATA:", form);
+      toast.error("Please fill all required fields");
       return;
     }
+    
+    // BUS REQUIRED
     if (
-      (category === "fuel" ||
-        category === "maintenance") &&
+      ["fuel", "maintenance", "repair"].includes(category) &&
       !busId
     ) {
       toast.error("Please select a bus");
       return;
     }
     
+    // ROUTE REQUIRED
     if (
-      (category === "ticket" ||
-        category === "toll") &&
+      ["ticket", "toll", "parcel"].includes(category) &&
       !routeId
     ) {
       toast.error("Please select a route");
       return;
     }
     
-    if (category === "salary" && !staffId) {
+    // STAFF REQUIRED
+    if (
+      category === "salary" &&
+      !staffId
+    ) {
       toast.error("Please select a staff member");
       return;
     }
-    
 
     if (isNaN(new Date(date).getTime())) {
       toast.error("Invalid date");
@@ -282,6 +295,7 @@ export default function AddTransactionModal({
               </>
             )}
           </select>
+
   
           {/* AMOUNT */}
           <input
@@ -317,36 +331,35 @@ export default function AddTransactionModal({
           />
   
           {/* BUS DROPDOWN */}
-          {(form.category === "fuel" ||
-            form.category === "maintenance" ||
-            form.category === "repair") && (
-            <select
-              name="busId"
-              value={form.busId}
-              onChange={handleChange}
-              className="w-full border p-3 rounded-lg"
-            >
-              <option value="">
-                Select Bus
-              </option>
-  
-              {buses.map((bus) => (
-                <option
-                  key={bus.id}
-                  value={bus.id}
-                >
-                  {bus.busNumber ||
-                    bus.bus_number ||
-                    bus.number ||
-                    "Bus"}
-                </option>
-              ))}
-            </select>
-          )}
+          {["fuel", "maintenance", "repair"].includes(form.category) && (
+  <select
+    name="busId"
+    value={form.busId}
+    onChange={handleChange}
+    className="w-full border p-3 rounded-lg"
+  >
+    <option value="">
+      Select Bus
+    </option>
+
+    {buses.map((bus) => (
+      <option
+        key={bus.id}
+        value={bus.id}
+      >
+        {bus.busNumber ||
+          bus.bus_number ||
+          bus.number ||
+          "Bus"}
+      </option>
+    ))}
+  </select>
+)}
   
           {/* ROUTE DROPDOWN */}
           {(form.category === "ticket" ||
-            form.category === "toll") && (
+            form.category === "toll" ||
+            form.category === "parcel") && (
             <select
               name="routeId"
               value={form.routeId}
@@ -373,6 +386,27 @@ export default function AddTransactionModal({
               ))}
             </select>
           )}
+          
+
+          {/* STAFF DROPDOWN */}
+{form.category === "salary" && (
+  <select
+    name="staffId"
+    value={form.staffId}
+    onChange={handleChange}
+    className="w-full border p-3 rounded-lg"
+  >
+    <option value="">
+      Select Staff Member
+    </option>
+
+    {staff.map((member) => (
+      <option key={member.id} value={member.id}>
+        {member.name}
+      </option>
+    ))}
+  </select>
+)}
   
           {/* DESCRIPTION */}
           <textarea

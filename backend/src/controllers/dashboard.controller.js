@@ -1,110 +1,203 @@
-// ✅ Dashboard Stats
 const { prisma } = require("../db/prisma");
 
-// ✅ Dashboard Stats (CLEAN VERSION)
+// ✅ DASHBOARD STATS
 const getDashboardStats = async (req, res) => {
   try {
     const userId = req.user?.sub;
 
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res
+        .status(401)
+        .json({ error: "Unauthorized" });
     }
 
-    const [revenueData, expenseData, buses, tripsCount, passengersData] =
-      await Promise.all([
-        prisma.trip.aggregate({
-          where: { userId },
-          _sum: { income: true },
-        }),
-
-        prisma.trip.aggregate({
-          where: { userId },
-          _sum: { expense: true },
-        }),
-
-        prisma.bus.count({
-          where: { userId },
-        }),
-
-        prisma.trip.count({
-          where: { userId },
-        }),
-
-        prisma.trip.aggregate({
-          where: { userId },
-          _sum: { passengers: true },
-        }),
-      ]);
-
-    const revenue = revenueData?._sum?.income || 0;
-    const expense = expenseData?._sum?.expense || 0;
-    const passengers = passengersData?._sum?.passengers || 0;
-
-    const profit = revenue - expense;
-
-    return res.json({
-      revenue,
-      profit,
-      buses,
-      passengers,
-      trips: tripsCount,
-    });
-  } catch (error) {
-    console.error("Dashboard Stats Error:", error);
-    res.status(500).json({ error: "Something went wrong" });
-  }
-};
-// ✅ Recent Trips
-const getRecentTrips = async (req, res) => {
-  try {
-    const trips = await prisma.trip.findMany({
-      orderBy: { date: "desc" },
-      take: 5,
-      include: {
-        bus: true,
-        route: true,
+    // ALL TRANSACTIONS
+    const transactions =
+    await prisma.transaction.findMany({
+      where: {
+        createdById: userId,
       },
     });
 
-    // ✅ Transform data for frontend
-    const formatted = trips.map((t) => ({
-      id: t.id,
-      bus: t.bus?.busNumber || "N/A",
-      route: `${t.route?.from || ""} → ${t.route?.to || ""}`,
-      income: t.income,
-      date: t.date,
-    }));
+    // TOTAL INCOME
+    const revenue = transactions
+      .filter((t) => t.type === "income")
+      .reduce((sum, t) => sum + t.amount, 0);
 
-    res.json(formatted);
-  } catch (error) {
-    console.error("Recent Trips Error:", error);
-    res.status(500).json({ error: "Failed to fetch trips" });
-  }
-};
-// ✅ Chart Data
-const getChartData = async (req, res) => {
-  try {
-    const trips = await prisma.trip.findMany();
+    // TOTAL EXPENSE
+    const expense = transactions
+      .filter((t) => t.type === "expense")
+      .reduce((sum, t) => sum + t.amount, 0);
 
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    // PROFIT
+    const profit = revenue - expense;
 
-    const data = days.map((day, index) => {
-      const dayTrips = trips.filter((t) => {
-        const tripDay = new Date(t.date).getDay(); // 0 = Sun
-        return tripDay === index;
-      });
-
-      return {
-        day,
-        income: dayTrips.reduce((sum, t) => sum + t.income, 0),
-        expense: dayTrips.reduce((sum, t) => sum + t.expense, 0),
-      };
+    // TOTAL BUSES
+    const buses = await prisma.bus.count({
+      where: {
+        userId: userId,
+      }
     });
 
-    res.json(data);
+    // TOTAL TRANSACTIONS
+    const transactionsCount =
+      transactions.length;
+
+    return res.json({
+      revenue,
+      expense,
+      profit,
+      buses,
+      transactions: transactionsCount,
+    });
+
   } catch (error) {
-    console.error("Chart Error:", error);
-    res.status(500).json({ error: "Chart error" });
+    console.error(
+      "Dashboard Stats Error:",
+      error
+    );
+
+    res.status(500).json({
+      error: "Something went wrong",
+    });
+  }
+};
+
+// ✅ RECENT TRANSACTIONS
+const getRecentTrips = async (req, res) => {
+  try {
+
+    const transactions =
+      await prisma.transaction.findMany({
+        where: {
+          createdById: req.user.sub,
+        },
+
+        orderBy: {
+          date: "desc",
+        },
+
+        take: 5,
+
+        include: {
+          bus: true,
+          route: true,
+        },
+      });
+
+    // FORMAT FOR FRONTEND
+    const formatted =
+      transactions.map((t) => ({
+        id: t.id,
+
+        type: t.type,
+
+        category: t.category,
+
+        amount: t.amount,
+
+        bus:
+          t.bus?.busNumber || "N/A",
+
+        route: t.route
+          ? `${t.route?.from || ""} → ${
+              t.route?.to || ""
+            }`
+          : "N/A",
+
+        date: t.date,
+      }));
+
+    res.json(formatted);
+
+  } catch (error) {
+    console.error(
+      "Recent Transactions Error:",
+      error
+    );
+
+    res.status(500).json({
+      error: "Failed to fetch transactions",
+    });
+  }
+};
+
+// ✅ CHART DATA
+const getChartData = async (req, res) => {
+  try {
+
+    const transactions =
+      await prisma.transaction.findMany({
+        where: {
+          createdById: req.user.sub,
+        },
+      });
+
+    const days = [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+    ];
+
+    const data = days.map(
+      (day, index) => {
+
+        const dayTransactions =
+          transactions.filter((t) => {
+            const transactionDay =
+              new Date(t.date).getDay();
+
+            return (
+              transactionDay === index
+            );
+          });
+
+        return {
+          day,
+
+          income:
+            dayTransactions
+              .filter(
+                (t) =>
+                  t.type === "income"
+              )
+              .reduce(
+                (sum, t) =>
+                  sum + t.amount,
+                0
+              ),
+
+          expense:
+            dayTransactions
+              .filter(
+                (t) =>
+                  t.type === "expense"
+              )
+              .reduce(
+                (sum, t) =>
+                  sum + t.amount,
+                0
+              ),
+        };
+      }
+    );
+
+    res.json(data);
+
+  } catch (error) {
+
+    console.error(
+      "Chart Error:",
+      error
+    );
+
+    res.status(500).json({
+      error: "Chart error",
+    });
   }
 };
 
