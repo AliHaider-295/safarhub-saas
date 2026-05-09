@@ -71,8 +71,47 @@ const getTransactions = async (req, res) => {
     });
   }
 };
+const getTransactionSummary = async (req, res) => {
+  try {
+    const userId = req.user.sub;
 
+    const transactions =
+      await prisma.transaction.findMany({
+        where: {
+          createdById: userId,
+        },
+      });
+
+    const totalIncome = transactions
+      .filter((t) => t.type === "income")
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const totalExpense = transactions
+      .filter((t) => t.type === "expense")
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const totalProfit =
+      totalIncome - totalExpense;
+
+    res.json({
+      totalIncome,
+      totalExpense,
+      totalProfit,
+    });
+
+  } catch (error) {
+    console.error(
+      "Summary Error:",
+      error
+    );
+
+    res.status(500).json({
+      error: "Failed to fetch summary",
+    });
+  }
+};
 module.exports = {
   createTransaction,
   getTransactions,
+  getTransactionSummary,
 };

@@ -13,11 +13,11 @@ export const useSummary = () => {
 
   const fetchSummary = async () => {
     try {
-      const res = await authFetch("/trips/summary");
+      const res = await authFetch("/transactions/summary");
   
       const data = await res.json(); // ✅ IMPORTANT FIX
   
-      console.log("SUMMARY RESPONSE:", data);
+      // console.log("SUMMARY RESPONSE:", data);
   
       setSummary({
         totalIncome: data.totalIncome || 0,

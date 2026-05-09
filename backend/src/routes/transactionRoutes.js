@@ -5,6 +5,7 @@ const router = express.Router();
 const {
   createTransaction,
   getTransactions,
+  getTransactionSummary
 } = require("../controllers/transaction.controller");
 
 const { protect } = require("../middleware/auth.middleware");
@@ -18,6 +19,11 @@ router.get(
   "/",
   protect,
   getTransactions
+);
+router.get(
+  "/summary",
+  protect,
+  getTransactionSummary
 );
 
 module.exports = router;
