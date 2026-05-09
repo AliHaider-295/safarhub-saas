@@ -133,6 +133,8 @@ model Transaction {
   paymentMethod String?
   description   String?
 
+
+ passengers Int @default(0)
   date      DateTime
   createdAt DateTime @default(now())
 

@@ -25,7 +25,7 @@ const createTransaction = async (req, res) => {
         paymentMethod,
         description,
         date: new Date(date),
-
+        passengers: Number(req.body.passengers || 0),
         busId,
         routeId,
         staffId,

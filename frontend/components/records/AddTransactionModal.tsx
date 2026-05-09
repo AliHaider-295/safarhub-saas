@@ -40,9 +40,10 @@ export default function AddTransactionModal({
     busId: "",
     routeId: "",
     date: "",
-    type: "",
+    type: "income",
     category: "",
     amount: "",
+    passengers: "",
     paymentMethod: "",
     description: "",
     staffId: ""
@@ -57,7 +58,9 @@ export default function AddTransactionModal({
       category: "",
   
       amount: "",
-  
+     
+      passengers: "",
+
       paymentMethod: "cash",
   
       description: "",
@@ -77,7 +80,7 @@ export default function AddTransactionModal({
           authFetch("/staff"),
         ]);
   
-        if (!busRes.ok || !routeRes.ok) {
+        if (!busRes.ok || !routeRes.ok || !staffRes.ok) {
           throw new Error("Failed to fetch data");
         }
   
@@ -104,7 +107,7 @@ export default function AddTransactionModal({
   
       } catch (err) {
         console.error(err);
-        toast.error("Failed to load buses/routes");
+        toast.error("Failed to load buses, routes or staff");
       }
     };
   
@@ -143,6 +146,7 @@ export default function AddTransactionModal({
       toast.error("Please fill all required fields");
       return;
     }
+   
     
     // BUS REQUIRED
     if (
@@ -161,6 +165,13 @@ export default function AddTransactionModal({
       toast.error("Please select a route");
       return;
     }
+    if (
+      form.category === "ticket" &&
+      Number(form.passengers) <= 0
+    ) {
+      toast.error("Please enter passenger count");
+      return;
+    }
     
     // STAFF REQUIRED
     if (
@@ -173,6 +184,10 @@ export default function AddTransactionModal({
 
     if (isNaN(new Date(date).getTime())) {
       toast.error("Invalid date");
+      return;
+    }
+    if (Number(amount) <= 0) {
+      toast.error("Amount must be greater than 0");
       return;
     }
 
@@ -193,7 +208,7 @@ export default function AddTransactionModal({
           category: form.category,
           
           amount: Number(form.amount),
-          
+          passengers: Number(form.passengers || 0),
           paymentMethod: form.paymentMethod,
           
           description: form.description,
@@ -306,7 +321,20 @@ export default function AddTransactionModal({
             onChange={handleChange}
             className="w-full border p-3 rounded-lg"
           />
-  
+         {form.type === "income" &&
+         form.category === "ticket" && (
+  <input
+    required
+    type="number"
+    name="passengers"
+    placeholder="Passengers Count"
+    value={form.passengers}
+    onChange={handleChange}
+    className="w-full border p-3 rounded-lg"
+  />
+)}
+
+
           {/* PAYMENT METHOD */}
           <select
             name="paymentMethod"

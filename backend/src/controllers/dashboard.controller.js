@@ -19,6 +19,11 @@ const getDashboardStats = async (req, res) => {
       },
     });
 
+    const passengers = transactions.reduce(
+      (sum, t) => sum + (t.passengers || 0),
+      0
+    );
+
     // TOTAL INCOME
     const revenue = transactions
       .filter((t) => t.type === "income")
@@ -49,6 +54,7 @@ const getDashboardStats = async (req, res) => {
       profit,
       buses,
       transactions: transactionsCount,
+      passengers,
     });
 
   } catch (error) {
