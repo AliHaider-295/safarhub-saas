@@ -77,13 +77,43 @@ export default function RecordsPage() {
     fetchTransactions();
   }, [filters]);
 
-  const handleExport = () => {
-    const query = new URLSearchParams(filters).toString();
-
-    window.open(
-      `http://localhost:5000/api/transactions/export?${query}`,
-      "_blank"
-    );
+  const handleExport = async () => {
+    try {
+      const cleanFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, value]) => value)
+      );
+  
+      const query = new URLSearchParams(cleanFilters).toString();
+  
+      const response = await authFetch(
+        `/transactions/export?${query}`
+      );
+  
+      if (!response.ok) {
+        throw new Error("Export failed");
+      }
+  
+      const blob = await response.blob();
+  
+      const url = window.URL.createObjectURL(blob);
+  
+      const a = document.createElement("a");
+  
+      a.href = url;
+  
+      a.download = "transactions.csv";
+  
+      document.body.appendChild(a);
+  
+      a.click();
+  
+      a.remove();
+  
+      window.URL.revokeObjectURL(url);
+  
+    } catch (error) {
+      console.error("Export error:", error);
+    }
   };
 
   return (
