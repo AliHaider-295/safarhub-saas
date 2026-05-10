@@ -5,7 +5,8 @@ const router = express.Router();
 const {
   createTransaction,
   getTransactions,
-  getTransactionSummary
+  getTransactionSummary,
+  exportTransactions,
 } = require("../controllers/transaction.controller");
 
 const { protect } = require("../middleware/auth.middleware");
@@ -14,6 +15,11 @@ router.post(
   "/",
   protect,
   createTransaction
+);
+router.get(
+  "/export",
+  protect,
+  exportTransactions
 );
 router.get(
   "/",

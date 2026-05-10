@@ -1,4 +1,5 @@
 const { prisma } = require("../db/prisma");
+const { Parser } = require("json2csv");
 
 /**
  * CREATE TRANSACTION
@@ -30,7 +31,7 @@ const createTransaction = async (req, res) => {
         routeId,
         staffId,
 
-        createdById: req.user.id, // from auth middleware
+        createdById: req.user.sub, // from auth middleware
       },
     });
 
@@ -46,10 +47,63 @@ const createTransaction = async (req, res) => {
     });
   }
 };
+
 const getTransactions = async (req, res) => {
   try {
+
+    console.log(req.query);
+
+    const {
+      fromDate,
+      toDate,
+      type,
+      category,
+      busId,
+      routeId,
+    } = req.query;
+
+    const userId = req.user.sub;
+
+    const where = {
+
+      createdById: userId,
+
+      ...(type && {
+        type,
+      }),
+
+      ...(category && {
+        category,
+      }),
+
+      ...(busId && {
+        busId,
+      }),
+
+      ...(routeId && {
+        routeId,
+      }),
+
+      ...(fromDate || toDate
+        ? {
+            date: {
+
+              ...(fromDate && {
+                gte: new Date(fromDate),
+              }),
+
+              ...(toDate && {
+                lte: new Date(toDate),
+              }),
+            },
+          }
+        : {}),
+    };
+
     const transactions =
       await prisma.transaction.findMany({
+        where,
+
         include: {
           bus: true,
           route: true,
@@ -64,13 +118,18 @@ const getTransactions = async (req, res) => {
     res.json(transactions);
 
   } catch (error) {
-    console.error(error);
+
+    console.error(
+      "Get Transactions Error:",
+      error
+    );
 
     res.status(500).json({
       error: "Failed to fetch transactions",
     });
   }
 };
+
 const getTransactionSummary = async (req, res) => {
   try {
     const userId = req.user.sub;
@@ -110,8 +169,48 @@ const getTransactionSummary = async (req, res) => {
     });
   }
 };
+const exportTransactions = async (req, res) => {
+
+  try {
+
+    const transactions =
+      await prisma.transaction.findMany();
+
+    const formatted =
+      transactions.map((t) => ({
+        Type: t.type,
+        Category: t.category,
+        Amount: t.amount,
+      }));
+
+    const parser = new Parser();
+
+    const csv = parser.parse(formatted);
+
+    res.header(
+      "Content-Type",
+      "text/csv"
+    );
+
+    res.attachment(
+      "transactions.csv"
+    );
+
+    return res.send(csv);
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      error: "Export failed",
+    });
+  }
+};
+
 module.exports = {
   createTransaction,
   getTransactions,
   getTransactionSummary,
+  exportTransactions,
 };

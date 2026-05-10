@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import AddTransactionModal from "@/components/records/AddTransactionModal";
 import TransactionCards from "@/components/records/TransactionCards";
 import TransactionsTable from "@/components/records/TransactionsTable";
+import TransactionFilters from "@/components/records/TransactionFilters";
 
 import { Button } from "@/components/ui/Button";
 
@@ -12,11 +13,20 @@ import { useSummary } from "@/hooks/useSummary";
 
 import { authFetch } from "@/lib/api";
 
+
 export default function RecordsPage() {
 
   const [open, setOpen] = useState(false);
 
   const [transactions, setTransactions] = useState([]);
+  const [filters, setFilters] = useState({
+    fromDate: "",
+    toDate: "",
+    type: "",
+    category: "",
+    busId: "",
+    routeId: "",
+  });
 
   const { summary, refetch } = useSummary();
 
@@ -25,8 +35,12 @@ export default function RecordsPage() {
 
     try {
 
+      const query = new URLSearchParams(
+        filters
+      ).toString();
+      
       const res = await authFetch(
-        "/transactions"
+        `/transactions?${query}`
       );
 
       if (!res.ok) {
@@ -91,7 +105,7 @@ export default function RecordsPage() {
 
           setOpen(false);
 
-          // refresh cards
+          // refresh cards  
           refetch();
 
           // refresh table
