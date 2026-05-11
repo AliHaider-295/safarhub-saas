@@ -170,23 +170,80 @@ const getTransactionSummary = async (req, res) => {
   }
 };
 const exportTransactions = async (req, res) => {
-
   try {
 
-    const transactions =
-      await prisma.transaction.findMany();
+    const {
+      fromDate,
+      toDate,
+      type,
+      category,
+      busId,
+      routeId,
+    } = req.query;
 
+    // Build filters
+    const where = {
+    createdById: req.user.id,
+    };
+
+    if (type) {
+      where.type = type;
+    }
+
+    if (category) {
+      where.category = category;
+    }
+
+    if (busId) {
+      where.busId = busId;
+    }
+
+    if (routeId) {
+      where.routeId = routeId;
+    }
+
+    // Date filter
+    if (fromDate || toDate) {
+      where.createdAt = {};
+
+      if (fromDate) {
+        where.createdAt.gte = new Date(fromDate);
+      }
+
+      if (toDate) {
+        where.createdAt.lte = new Date(toDate);
+      }
+    }
+
+    // Get filtered transactions
+    const transactions =
+      await prisma.transaction.findMany({
+        where,
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+    // Format CSV data
     const formatted =
       transactions.map((t) => ({
+        Date: new Date(
+          t.createdAt
+        ).toLocaleDateString(),
+
         Type: t.type,
+
         Category: t.category,
+
         Amount: t.amount,
       }));
 
+    // Generate CSV
     const parser = new Parser();
 
     const csv = parser.parse(formatted);
 
+    // Response headers
     res.header(
       "Content-Type",
       "text/csv"
