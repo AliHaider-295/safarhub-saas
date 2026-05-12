@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { authFetch } from "@/lib/api"; // ✅ added
 
 export default function AddRouteModal({ open, onClose, onSuccess }: any) {
   const [form, setForm] = useState({
     from: "",
     to: "",
     distance: "",
-    status: "ACTIVE", // ✅ IMPORTANT FIX
+    status: "ACTIVE",
   });
 
   const [loading, setLoading] = useState(false);
@@ -18,32 +19,26 @@ export default function AddRouteModal({ open, onClose, onSuccess }: any) {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("safarhub_token");
-
-      const res = await fetch("http://localhost:5000/api/routes", {
+      // ❌ removed localStorage + manual fetch
+      const res = await authFetch("/routes", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           from: form.from,
           to: form.to,
           distance: Number(form.distance),
-          status: form.status, // ✅ FIXED
+          status: form.status,
         }),
       });
 
       const data = await res.json();
 
-      console.log("Route API Response:", data); // 🔍 debug
+      console.log("Route API Response:", data);
 
       if (!res.ok) {
         alert(data.error || "Failed to create route");
         return;
       }
 
-      // reset
       setForm({
         from: "",
         to: "",
@@ -97,7 +92,6 @@ export default function AddRouteModal({ open, onClose, onSuccess }: any) {
           }
         />
 
-        {/* STATUS FIX */}
         <select
           value={form.status}
           className="w-full border p-2 mb-2 rounded"

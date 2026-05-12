@@ -13,6 +13,9 @@ const routeRoutes = require("./routes/route.routes");
 const staffRoutes = require("./routes/staff.routes");
 const passengerRoutes = require("./routes/passenger.routes");
 const transactionRoutes = require("./routes/transactionRoutes");
+const bookingRoutes = require("./routes/booking.routes");
+
+
 
 const app = express();
 
@@ -58,6 +61,7 @@ app.use("/api/routes", routeRoutes);
 app.use("/api/passengers", passengerRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/transactions", transactionRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 /* ---------------- 404 (MUST BE LAST) ---------------- */
 app.use((req, res) => {

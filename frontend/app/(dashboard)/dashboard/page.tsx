@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authFetch } from "@/lib/api";
 
-
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import RecentTrips from "@/components/dashboard/RecentTrips";
@@ -27,7 +26,7 @@ export default function DashboardPage() {
   // ✅ NEW STATE (for buses + passengers)
   const [stats, setStats] = useState({
     buses: 0,
-    passengers: 0,
+    transactions: 0,
   });
 
   const { summary, loading } = useSummary();
@@ -52,7 +51,7 @@ export default function DashboardPage() {
   
         setStats({
           buses: data?.buses ?? 0,
-          passengers: data?.passengers ?? 0,
+          transactions: data?.transactions ?? 0,
         });
   
       } catch (err) {
@@ -102,11 +101,11 @@ export default function DashboardPage() {
 
         {/* ✅ NOW DYNAMIC */}
         <DashboardCard
-          title="Passengers"
-          value={stats.passengers}
-          icon={<Users />}
-          type="passengers"
-        />
+  title="Transactions"
+  value={stats.transactions}
+  icon={<Users />}
+  type="passengers"
+ />
 
         <DashboardCard
           title="Buses"

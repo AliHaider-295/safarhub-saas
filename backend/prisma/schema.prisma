@@ -18,6 +18,13 @@ enum RouteStatus {
   INACTIVE
 }
 
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
 model User {
   id          String   @id @default(uuid())
   companyName String
@@ -31,6 +38,7 @@ model User {
   staff  Staff[]
 
   transactions Transaction[]
+  bookings     Booking[]
 }
 
 model Bus {
@@ -49,6 +57,7 @@ model Bus {
   trips Trip[]
 
   transactions Transaction[]
+  Booking      Booking[]
 
   @@unique([id, userId]) // 🔥 required for secure queries
   @@unique([busNumber, userId]) // 🔥 optional but recommended
@@ -69,6 +78,7 @@ model Route {
   trips Trip[]
 
   transactions Transaction[]
+  Booking      Booking[]
 
   @@index([userId])
 }
@@ -133,10 +143,9 @@ model Transaction {
   paymentMethod String?
   description   String?
 
-
- passengers Int @default(0)
-  date      DateTime
-  createdAt DateTime @default(now())
+  passengers Int      @default(0)
+  date       DateTime
+  createdAt  DateTime @default(now())
 
   // 🔗 Relations (optional links)
   busId   String?
@@ -157,4 +166,45 @@ model Transaction {
   @@index([routeId])
   @@index([staffId])
   @@index([date])
+}
+
+model Booking {
+  id String @id @default(uuid())
+
+  // BOOKING INFO
+  bookingCode   String  @unique
+  passengerName String
+  phone         String?
+  email         String?
+
+  // SEAT / TICKET
+  seats Int @default(1)
+
+  // PAYMENT
+  amount        Float
+  paymentMethod String?
+
+  // STATUS
+  status BookingStatus @default(PENDING)
+
+  // DATE
+  journeyDate DateTime
+  bookingDate DateTime @default(now())
+
+  // OPTIONAL NOTES
+  note String?
+
+  // RELATIONS
+  busId       String?
+  routeId     String?
+  createdById String
+
+  bus   Bus?   @relation(fields: [busId], references: [id])
+  route Route? @relation(fields: [routeId], references: [id])
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  // TIMESTAMPS
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

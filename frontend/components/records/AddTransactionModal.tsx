@@ -36,6 +36,7 @@ export default function AddTransactionModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [staff, setStaff] = useState<any[]>([]);
 
+
   const [form, setForm] = useState({
     busId: "",
     routeId: "",
@@ -114,6 +115,15 @@ export default function AddTransactionModal({
     fetchData();
   
   }, [open]);
+
+  const [filters, setFilters] = useState({
+  fromDate: "",
+  toDate: "",
+  type: "",
+  category: "",
+  busId: "",
+  routeId: "",
+});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

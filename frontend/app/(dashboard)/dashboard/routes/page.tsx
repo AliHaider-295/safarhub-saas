@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { authFetch } from "@/lib/api";
 import RoutesCard from "@/components/routes/RoutesCard";
 import RoutesTable from "@/components/routes/RoutesTable";
 import RouteChart from "@/components/routes/RouteChart";
@@ -26,29 +26,31 @@ export default function RoutesPage() {
   // ✅ Fetch routes (shared for cards + table)
   const fetchRoutes = async () => {
     try {
-      const token = localStorage.getItem("safarhub_token");
-
-      const res = await fetch("http://localhost:5000/api/routes", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const res = await authFetch("/routes");
+  
+      if (!res.ok) {
+        throw new Error("Failed to fetch routes");
+      }
+  
       const data = await res.json();
-
-      setRoutes(Array.isArray(data) ? data : data.data || []);
+  
+      setRoutes(
+        Array.isArray(data)
+          ? data
+          : data?.data ?? []
+      );
+  
     } catch (error) {
       console.error("Fetch routes error:", error);
+      setRoutes([]);
     }
   };
-
-
+  const triggerRefresh = () => {
+    setRefresh(prev => !prev);
+  };
   useEffect(() => {
     fetchRoutes();
   }, [refresh]);
-  const triggerRefresh = () => {
-    setRefresh(prev => !prev);
-   }
 
   // ✅ Derived stats (SaaS logic)
   const total = routes.length;
