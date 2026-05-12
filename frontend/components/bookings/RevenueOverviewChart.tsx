@@ -1,36 +1,123 @@
 "use client";
 
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   CartesianGrid,
   XAxis,
+  YAxis,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
 
 const data = [
-  { day: "May 01", revenue: 150000 },
-  { day: "May 06", revenue: 280000 },
-  { day: "May 11", revenue: 260000 },
-  { day: "May 16", revenue: 430000 },
+  { day: "May 01", revenue: 160000 },
+  { day: "May 03", revenue: 210000 },
+  { day: "May 05", revenue: 280000 },
+  { day: "May 07", revenue: 260000 },
+  { day: "May 09", revenue: 340000 },
+  { day: "May 11", revenue: 360000 },
+  { day: "May 13", revenue: 300000 },
+  { day: "May 15", revenue: 310000 },
+  { day: "May 17", revenue: 440000 },
+  { day: "May 19", revenue: 330000 },
   { day: "May 21", revenue: 360000 },
-  { day: "May 26", revenue: 470000 },
+  { day: "May 23", revenue: 480000 },
+  { day: "May 25", revenue: 420000 },
+  { day: "May 27", revenue: 370000 },
+  { day: "May 29", revenue: 440000 },
+  { day: "May 31", revenue: 320000 },
 ];
 
 export default function RevenueOverviewChart() {
   return (
-    <div className="bg-white p-5 rounded-xl border">
-      <h3 className="font-semibold mb-4">Revenue Overview</h3>
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 w-full h-[360px]">
+      
+      {/* HEADER */}
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="text-[20px] font-semibold text-gray-900">
+          Revenue Overview
+        </h3>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="day" />
-          <Tooltip />
-          <Line type="monotone" dataKey="revenue" stroke="#2563eb" />
-        </LineChart>
-      </ResponsiveContainer>
+        <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none">
+          <option>This Month</option>
+          <option>Last Month</option>
+          <option>This Year</option>
+        </select>
+      </div>
+
+      {/* CHART */}
+      <div className="w-full h-[280px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={data}
+            margin={{
+              top: 10,
+              right: 5,
+              left: -20,
+              bottom: 0,
+            }}
+          >
+            <defs>
+              <linearGradient
+                id="colorRevenue"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop
+                  offset="5%"
+                  stopColor="#2563eb"
+                  stopOpacity={0.25}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="#2563eb"
+                  stopOpacity={0}
+                />
+              </linearGradient>
+            </defs>
+
+            <CartesianGrid
+              vertical={false}
+              stroke="#e5e7eb"
+            />
+
+            <XAxis
+              dataKey="day"
+              tickLine={false}
+              axisLine={false}
+              tick={{
+                fontSize: 12,
+                fill: "#6b7280",
+              }}
+            />
+
+            <YAxis
+              tickFormatter={(value) =>
+                `${value / 1000}K`
+              }
+              tickLine={false}
+              axisLine={false}
+              tick={{
+                fontSize: 12,
+                fill: "#6b7280",
+              }}
+            />
+
+            <Tooltip />
+
+            <Area
+              type="monotone"
+              dataKey="revenue"
+              stroke="#2563eb"
+              strokeWidth={3}
+              fill="url(#colorRevenue)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
