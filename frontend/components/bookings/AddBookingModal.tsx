@@ -4,14 +4,17 @@ import { X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { authFetch } from "@/lib/api";
 
+import { toast } from "sonner";
 interface Props {
   open: boolean;
   setOpen: (value: boolean) => void;
+  fetchBookings: () => void; 
 }
 
 export default function AddBookingModal({
   open,
   setOpen,
+  fetchBookings,
 }: Props) {
 
   const [buses, setBuses] = useState([]);
@@ -106,64 +109,44 @@ export default function AddBookingModal({
     });
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
-
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
+    if (!form.busId || !form.routeId) {
+      toast.error("Please select bus and route");
+      return;
+    }
+  
     try {
-
-      const response =
-        await authFetch(
-          "/bookings",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body: JSON.stringify({
-              ...form,
-
-              amount: Number(
-                form.amount
-              ),
-
-              seats: Number(
-                form.seats
-              ),
-            }),
-          }
-        );
-
-      const result =
-        await response.json();
-
-      console.log(result);
-
-      if (result.success) {
-
+      const response = await authFetch("/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          amount: Number(form.amount),
+          seats: Number(form.seats),
+        }),
+      });
+  
+      const result = await response.json();
+  
+      console.log("BOOKING RESPONSE:", result);
+  
+      // 🔥 SAFE SUCCESS CHECK
+      if (response.ok && (result.success !== false)) {
+        toast.success("Booking created successfully");
+  
         setOpen(false);
-
+  
+        fetchBookings?.(); // refresh table instantly
       } else {
-
-        console.error(
-          result.message
-        );
+        toast.error(result.message || "Failed to create booking");
       }
-
     } catch (error) {
-
-      console.error(
-        "Create Booking Error:",
-        error
-      );
+      console.error(error);
+      toast.error("Server error while creating booking");
     }
   };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
 

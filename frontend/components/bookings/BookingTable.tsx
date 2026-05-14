@@ -36,14 +36,15 @@ interface Booking {
     routeName?: string;
   };
 }
+interface Props {
+  bookings: Booking[];
+  loading: boolean;
+}
 
-export default function BookingTable() {
-
-  const [bookings, setBookings] =
-    useState<Booking[]>([]);
-
-  const [loading, setLoading] =
-    useState(false);
+export default function BookingTable({
+  bookings,
+  loading,
+}: Props) {
 
   const [page, setPage] =
     useState(1);
@@ -55,14 +56,11 @@ export default function BookingTable() {
       hasNextPage: false,
       hasPrevPage: false,
     });
-
   // =====================================
   // FETCH BOOKINGS
   // =====================================
   const fetchBookings = async () => {
     try {
-
-      setLoading(true);
 
       const response =
         await authFetch(
@@ -74,22 +72,34 @@ export default function BookingTable() {
        
 
         if (result.success) {
-          
-          console.log(result,    "BOOKING API RESPONSE:");
+
           setBookings(
             Array.isArray(result.data)
               ? result.data
               : []
           );
         
-          setPagination(
-            result.pagination || {
-              total: 0,
-              totalPages: 1,
-              hasNextPage: false,
-              hasPrevPage: false,
-            }
+          console.log(
+            "PAGINATION:",
+            result.pagination
           );
+        
+          setPagination({
+            total:
+              result.pagination?.total ||
+              result.pagination?.totalBookings ||
+              result.data?.length ||
+              0,
+        
+            totalPages:
+              result.pagination?.totalPages || 1,
+        
+            hasNextPage:
+              result.pagination?.hasNextPage || false,
+        
+            hasPrevPage:
+              result.pagination?.hasPrevPage || false,
+          });
         }
     } catch (error) {
 
@@ -98,18 +108,13 @@ export default function BookingTable() {
         error
       );
 
-    } finally {
-
-      setLoading(false);
-    }
+    } 
   };
 
   // =====================================
   // INITIAL FETCH
   // =====================================
-  useEffect(() => {
-    fetchBookings();
-  }, [page]);
+ 
   // =====================================
   // STATUS STYLES
   // =====================================
@@ -397,67 +402,43 @@ export default function BookingTable() {
           </div>
 
           {/* FOOTER */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mt-6">
+        {/* PAGINATION */}
+<div className="flex items-center justify-between mt-6">
 
-            {/* PAGINATION INFO */}
-            <p className="text-[14px] text-gray-500">
+<p className="text-[14px] text-gray-500">
+  Showing page {page} of {pagination.totalPages} (
+  {pagination.total} total bookings)
+</p>
 
-              Showing page {page} of{" "}
-              {pagination.totalPages} (
-              {pagination.total} total
-              bookings)
+<div className="flex items-center gap-2">
 
-            </p>
+  {/* PREVIOUS */}
+  <button
+    disabled={!pagination.hasPrevPage}
+    onClick={() => setPage((prev) => prev - 1)}
+    className="h-9 w-9 border rounded-md flex items-center justify-center disabled:opacity-40"
+  >
+    <ChevronLeft size={16} />
+  </button>
 
-            {/* PAGINATION */}
-            <div className="flex items-center gap-2">
+  {/* CURRENT PAGE */}
+  <button
+    className="h-9 min-w-[36px] px-3 rounded-md bg-blue-600 text-white text-sm font-medium"
+  >
+    {page}
+  </button>
 
-              {/* PREV */}
-              <button
-                disabled={
-                  !pagination.hasPrevPage
-                }
-                onClick={() =>
-                  setPage((prev) =>
-                    prev - 1
-                  )
-                }
-                className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-40">
+  {/* NEXT */}
+  <button
+    disabled={!pagination.hasNextPage}
+    onClick={() => setPage((prev) => prev + 1)}
+    className="h-9 w-9 border rounded-md flex items-center justify-center disabled:opacity-40"
+  >
+    <ChevronRight size={16} />
+  </button>
 
-                <ChevronLeft
-                  size={16}
-                  className="text-gray-500"/>
-
-              </button>
-
-              {/* CURRENT PAGE */}
-              <button className="w-9 h-9 rounded-lg bg-[#0f172a] text-white text-sm font-medium">
-
-                {page}
-
-              </button>
-
-              {/* NEXT */}
-              <button
-                disabled={
-                  !pagination.hasNextPage
-                }
-                onClick={() =>
-                  setPage((prev) =>
-                    prev + 1
-                  )
-                }
-                className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-40">
-
-                <ChevronRight
-                  size={16}
-                  className="text-gray-500"/>
-
-              </button>
-
-            </div>
-
-          </div>
+</div>
+</div>
         </>
       )}
     </div>

@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { authFetch } from "@/lib/api";
+import toast from "react-hot-toast";
 // 🚀 Disable SSR for heavy UI parts (fix hydration mismatch)
 const BookingCards = dynamic(
   () => import("@/components/bookings/BookingCards"),
@@ -36,7 +37,35 @@ const BookingTable = dynamic(
 
 export default function BookingsPage() {
   const [open, setOpen] = useState(false);
-
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+  
+      const response = await authFetch("/bookings");
+  
+      const result = await response.json();
+  
+      console.log(result, "BOOKING API RESPONSE");
+  
+      if (result.success) {
+        setBookings(result.data || []);
+      }
+  
+    } catch (error) {
+      console.error(
+        "Fetch Booking Error:",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchBookings();
+  }, [page]);
   return (
     <div className="p-6 lg:p-8 space-y-6">
 
@@ -62,7 +91,7 @@ export default function BookingsPage() {
       </div>
 
       {/* ================= MODAL ================= */}
-      <AddBookingModal open={open} setOpen={setOpen} />
+      <AddBookingModal open={open}setOpen={setOpen}fetchBookings={fetchBookings}/>
 
       {/* ================= CARDS ================= */}
       <BookingCards />
@@ -77,7 +106,7 @@ export default function BookingsPage() {
       </div>
 
       {/* ================= TABLE ================= */}
-      <BookingTable />
+      <BookingTable bookings={bookings} loading={loading} />
 
     </div>
   );
