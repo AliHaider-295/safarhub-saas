@@ -14,7 +14,7 @@ router.get("/distance-stats", getDistanceStats);
 router.get("/usage", getRouteUsage);
 
 // ✅ MAIN CRUD APIs (YOU WERE MISSING THESE)
-router.get("/", getRoutes);        // 🔥 FIX
+router.get("/", protect, getRoutes);        // 🔥 FIX
 router.post("/", protect, createRoute);   // 🔥 FIX
 router.delete("/:id", deleteRoute); // 🔥 FIX
 

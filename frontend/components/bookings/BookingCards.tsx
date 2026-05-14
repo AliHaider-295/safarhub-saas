@@ -63,16 +63,7 @@ import {
           return (
             <div
               key={i}
-              className="
-                bg-white
-                border border-gray-200
-                rounded-xl
-                px-5 py-4
-                shadow-sm
-                hover:shadow-md
-                transition
-              "
-            >
+              className="bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:shadow-md transition">
               <div className="flex items-center justify-between">
   
                 {/* TEXT CONTENT */}

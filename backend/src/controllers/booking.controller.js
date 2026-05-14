@@ -7,26 +7,23 @@ const createBooking = async (req, res) => {
   try {
     const {
       passengerName,
-      phone,
-      email,
+      routeId,
+      busId,
       seats,
       amount,
       paymentMethod,
       status,
       journeyDate,
-      note,
-      busId,
-      routeId,
     } = req.body;
 
     // VALIDATION
     if (
       !passengerName ||
-      !phone ||
-      !amount ||
-      !journeyDate ||
+      !routeId ||
       !busId ||
-      !routeId
+      seats === undefined ||
+      !amount ||
+      !journeyDate
     ) {
       return res.status(400).json({
         success: false,
@@ -36,9 +33,7 @@ const createBooking = async (req, res) => {
 
     // FIND BUS
     const bus = await prisma.bus.findUnique({
-      where: {
-        id: busId,
-      },
+      where: { id: busId },
     });
 
     if (!bus) {
@@ -48,100 +43,66 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // TOTAL BOOKED SEATS
-    const existingBookings =
-      await prisma.booking.aggregate({
-        where: {
-          busId,
-          journeyDate: new Date(journeyDate),
-          status: {
-            not: "CANCELLED",
-          },
+    // CHECK BOOKED SEATS
+    const existingBookings = await prisma.booking.aggregate({
+      where: {
+        busId,
+        journeyDate: new Date(journeyDate),
+        status: {
+          not: "CANCELLED",
         },
+      },
+      _sum: {
+        seats: true,
+      },
+    });
 
-        _sum: {
-          seats: true,
-        },
-      });
+    const bookedSeats = existingBookings._sum.seats || 0;
+    const requestedSeats = Number(seats);
 
-    const bookedSeats =
-      existingBookings._sum.seats || 0;
-
-    const requestedSeats =
-      Number(seats || 1);
-
-    // CHECK AVAILABLE SEATS
-    if (
-      bookedSeats + requestedSeats >
-      bus.totalSeats
-    ) {
+    // SEAT CHECK
+    if (bookedSeats + requestedSeats > bus.totalSeats) {
       return res.status(400).json({
         success: false,
-        message:
-          "Not enough seats available",
+        message: "Not enough seats available",
       });
     }
 
-    // AUTO BOOKING CODE
+    // BOOKING CODE
     const bookingCode = `BK-${Date.now()}`;
 
     // CREATE BOOKING
-    const booking =
-      await prisma.booking.create({
-        data: {
-          bookingCode,
+    const booking = await prisma.booking.create({
+      data: {
+        bookingCode,
+        passengerName,
+        routeId,
+        busId,
+        seats: requestedSeats,
+        amount: Number(amount),
+        paymentMethod,
+        status: status || "PENDING",
+        journeyDate: new Date(journeyDate),
+        createdById: req.user.sub,
+      },
+      include: {
+        bus: true,
+        route: true,
+      },
+    });
 
-          passengerName,
-
-          phone,
-
-          email,
-
-          seats: requestedSeats,
-
-          amount: Number(amount || 0),
-
-          paymentMethod,
-
-          status: status || "PENDING",
-
-          journeyDate:
-            new Date(journeyDate),
-
-          note,
-
-          busId,
-
-          routeId,
-
-          createdById:
-            req.user.sub,
-        },
-
-        include: {
-          bus: true,
-          route: true,
-        },
-      });
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message:
-        "Booking created successfully",
+      message: "Booking created successfully",
       data: booking,
     });
 
   } catch (error) {
+    console.error("Create Booking Error:", error);
 
-    console.error(
-      "Create Booking Error:",
-      error
-    );
-
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message:
-        "Failed to create booking",
+      message: "Failed to create booking",
     });
   }
 };

@@ -62,7 +62,7 @@ export default function BookingTable() {
   const fetchBookings = async () => {
     try {
 
-      setLoading(false);
+      setLoading(true);
 
       const response =
         await authFetch(
@@ -71,16 +71,26 @@ export default function BookingTable() {
 
       const result =
         await response.json();
+       
 
-      if (result.success) {
-
-        setBookings(result.data);
-
-        setPagination(
-          result.pagination
-        );
-      }
-
+        if (result.success) {
+          
+          console.log(result,    "BOOKING API RESPONSE:");
+          setBookings(
+            Array.isArray(result.data)
+              ? result.data
+              : []
+          );
+        
+          setPagination(
+            result.pagination || {
+              total: 0,
+              totalPages: 1,
+              hasNextPage: false,
+              hasPrevPage: false,
+            }
+          );
+        }
     } catch (error) {
 
       console.error(
@@ -98,14 +108,7 @@ export default function BookingTable() {
   // INITIAL FETCH
   // =====================================
   useEffect(() => {
-    const loadBookings = async () => {
-  
-      await fetchBookings();
-  
-      setLoading(false);
-    };
-  
-    loadBookings();
+    fetchBookings();
   }, [page]);
   // =====================================
   // STATUS STYLES
@@ -264,8 +267,7 @@ export default function BookingTable() {
 
                       <tr
                         key={booking.id}
-                        className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition"
-                      >
+                        className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition">
 
                         {/* BOOKING CODE */}
                         <td className="py-4 text-[14px] font-semibold text-blue-600 whitespace-nowrap">
@@ -278,8 +280,8 @@ export default function BookingTable() {
                         <td className="py-4 text-[14px] text-gray-600 whitespace-nowrap">
 
                         {booking.journeyDate
-  ? formatDate(booking.journeyDate)
-  : "-"}
+                        ? formatDate(booking.journeyDate)
+                         : "-"}
 
                         </td>
 
@@ -322,8 +324,11 @@ export default function BookingTable() {
                         {/* AMOUNT */}
                         <td className="py-4 text-[14px] font-semibold text-gray-800 whitespace-nowrap">
 
+                          
                           Rs{" "}
-                          {booking.amount.toLocaleString()}
+                          {Number(
+                         booking.amount || 0
+                        ).toLocaleString()}
 
                         </td>
 
@@ -358,8 +363,7 @@ export default function BookingTable() {
 
                               <Eye
                                 size={16}
-                                className="text-blue-600"
-                              />
+                                className="text-blue-600"/>
 
                             </button>
 
@@ -377,8 +381,7 @@ export default function BookingTable() {
 
                     <td
                       colSpan={10}
-                      className="py-16 text-center text-[14px] text-gray-500"
-                    >
+                      className="py-16 text-center text-[14px] text-gray-500">
 
                       No bookings found
 
@@ -419,13 +422,11 @@ export default function BookingTable() {
                     prev - 1
                   )
                 }
-                className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-40"
-              >
+                className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-40">
 
                 <ChevronLeft
                   size={16}
-                  className="text-gray-500"
-                />
+                  className="text-gray-500"/>
 
               </button>
 
@@ -446,13 +447,11 @@ export default function BookingTable() {
                     prev + 1
                   )
                 }
-                className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-40"
-              >
+                className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-40">
 
                 <ChevronRight
                   size={16}
-                  className="text-gray-500"
-                />
+                  className="text-gray-500"/>
 
               </button>
 

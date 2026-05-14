@@ -14,8 +14,7 @@ export default function BookingFilters() {
           </label>
           <input
             type="date"
-            className="h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
+            className="h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"/>
         </div>
 
         {/* TO DATE */}
@@ -25,8 +24,7 @@ export default function BookingFilters() {
           </label>
           <input
             type="date"
-            className="h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
+            className="h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"/>
         </div>
 
         {/* STATUS */}
