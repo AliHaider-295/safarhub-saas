@@ -8,7 +8,6 @@ import {
 
 import {
   useEffect,
-  useState,
 } from "react";
 
 import { authFetch } from "@/lib/api";
@@ -39,82 +38,36 @@ interface Booking {
 interface Props {
   bookings: Booking[];
   loading: boolean;
+  pagination: {
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  page: number;
+  setPage: React.Dispatch<
+    React.SetStateAction<number>
+  >;
 }
-
 export default function BookingTable({
   bookings,
   loading,
+  pagination,
+  page,
+  setPage,
 }: Props) {
 
-  const [page, setPage] =
-    useState(1);
 
-  const [pagination, setPagination] =
-    useState({
-      total: 0,
-      totalPages: 1,
-      hasNextPage: false,
-      hasPrevPage: false,
-    });
+ 
   // =====================================
   // FETCH BOOKINGS
   // =====================================
-  const fetchBookings = async () => {
-    try {
 
-      const response =
-        await authFetch(
-          `/bookings?page=${page}&limit=10`
-        );
-
-      const result =
-        await response.json();
-       
-
-        if (result.success) {
-
-          setBookings(
-            Array.isArray(result.data)
-              ? result.data
-              : []
-          );
-        
-          console.log(
-            "PAGINATION:",
-            result.pagination
-          );
-        
-          setPagination({
-            total:
-              result.pagination?.total ||
-              result.pagination?.totalBookings ||
-              result.data?.length ||
-              0,
-        
-            totalPages:
-              result.pagination?.totalPages || 1,
-        
-            hasNextPage:
-              result.pagination?.hasNextPage || false,
-        
-            hasPrevPage:
-              result.pagination?.hasPrevPage || false,
-          });
-        }
-    } catch (error) {
-
-      console.error(
-        "Fetch Booking Error:",
-        error
-      );
-
-    } 
-  };
 
   // =====================================
   // INITIAL FETCH
   // =====================================
- 
+
   // =====================================
   // STATUS STYLES
   // =====================================
@@ -405,39 +358,55 @@ export default function BookingTable({
         {/* PAGINATION */}
 <div className="flex items-center justify-between mt-6">
 
-<p className="text-[14px] text-gray-500">
-  Showing page {page} of {pagination.totalPages} (
-  {pagination.total} total bookings)
-</p>
+  <p className="text-[14px] text-gray-500">
+    Showing page {page} of {pagination.totalPages} (
+    {pagination.total} total bookings)
+  </p>
 
-<div className="flex items-center gap-2">
+  <div className="flex items-center gap-2">
 
-  {/* PREVIOUS */}
-  <button
-    disabled={!pagination.hasPrevPage}
-    onClick={() => setPage((prev) => prev - 1)}
-    className="h-9 w-9 border rounded-md flex items-center justify-center disabled:opacity-40"
-  >
-    <ChevronLeft size={16} />
-  </button>
+    {/* PREVIOUS */}
+    <button
+      disabled={!pagination.hasPrevPage}
+      onClick={() => setPage((prev) => prev - 1)}
+      className="h-9 w-9 border rounded-md flex items-center justify-center disabled:opacity-40"
+    >
+      <ChevronLeft size={16} />
+    </button>
 
-  {/* CURRENT PAGE */}
-  <button
-    className="h-9 min-w-[36px] px-3 rounded-md bg-blue-600 text-white text-sm font-medium"
-  >
-    {page}
-  </button>
+    {/* CURRENT PAGE */}
+    {Array.from(
+  { length: pagination.totalPages },
+  (_, index) => {
 
-  {/* NEXT */}
-  <button
-    disabled={!pagination.hasNextPage}
-    onClick={() => setPage((prev) => prev + 1)}
-    className="h-9 w-9 border rounded-md flex items-center justify-center disabled:opacity-40"
-  >
-    <ChevronRight size={16} />
-  </button>
+    const pageNumber = index + 1;
 
-</div>
+    return (
+      <button
+        key={pageNumber}
+        onClick={() => setPage(pageNumber)}
+        className={`h-9 min-w-[36px] px-3 rounded-md text-sm font-medium border transition ${
+          page === pageNumber
+            ? "bg-blue-600 text-white border-blue-600"
+            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+        }`}
+      >
+        {pageNumber}
+      </button>
+    );
+  }
+)}
+
+    {/* NEXT */}
+    <button
+      disabled={!pagination.hasNextPage}
+      onClick={() => setPage((prev) => prev + 1)}
+      className="h-9 w-9 border rounded-md flex items-center justify-center disabled:opacity-40"
+    >
+      <ChevronRight size={16} />
+    </button>
+
+  </div>
 </div>
         </>
       )}

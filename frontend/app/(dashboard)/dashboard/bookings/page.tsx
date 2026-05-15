@@ -40,20 +40,37 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
   const fetchBookings = async () => {
     try {
       setLoading(true);
   
-      const response = await authFetch("/bookings");
+      const response = await authFetch(
+        `/bookings?page=${page}&limit=10`
+      );
   
       const result = await response.json();
   
       console.log(result, "BOOKING API RESPONSE");
   
       if (result.success) {
+
         setBookings(result.data || []);
+      
+        setPagination({
+          total: result.pagination?.total || 0,
+          totalPages: result.pagination?.totalPages || 1,
+          hasNextPage:
+            result.pagination?.hasNextPage || false,
+          hasPrevPage:
+            result.pagination?.hasPrevPage || false,
+        });
       }
-  
     } catch (error) {
       console.error(
         "Fetch Booking Error:",
@@ -106,7 +123,13 @@ export default function BookingsPage() {
       </div>
 
       {/* ================= TABLE ================= */}
-      <BookingTable bookings={bookings} loading={loading} />
+      <BookingTable
+  bookings={bookings}
+  loading={loading}
+  pagination={pagination}
+  page={page}
+  setPage={setPage}
+/>
 
     </div>
   );

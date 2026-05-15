@@ -19,7 +19,6 @@ export default function AddBookingModal({
 
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
-
   const [form, setForm] = useState({
     passengerName: "",
     routeId: "",
@@ -118,33 +117,57 @@ export default function AddBookingModal({
     }
   
     try {
+
       const response = await authFetch("/bookings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+    
+        headers: {
+          "Content-Type": "application/json",
+        },
+    
         body: JSON.stringify({
           ...form,
           amount: Number(form.amount),
           seats: Number(form.seats),
         }),
       });
-  
+    
       const result = await response.json();
-  
-      console.log("BOOKING RESPONSE:", result);
-  
-      // 🔥 SAFE SUCCESS CHECK
-      if (response.ok && (result.success !== false)) {
-        toast.success("Booking created successfully");
-  
+    
+      console.log(
+        "BOOKING RESPONSE:",
+        result
+      );
+    
+      // ✅ SUCCESS
+      if (response.ok && result.success) {
+    
+        // ✅ refresh latest bookings + pagination
+        await fetchBookings();
+    
+        // ✅ close modal
         setOpen(false);
-  
-        fetchBookings?.(); // refresh table instantly
+    
+        // ✅ success toast
+        toast.success(
+          "Booking created successfully"
+        );
+    
       } else {
-        toast.error(result.message || "Failed to create booking");
+    
+        toast.error(
+          result.message ||
+          "Failed to create booking"
+        );
       }
+    
     } catch (error) {
+    
       console.error(error);
-      toast.error("Server error while creating booking");
+    
+      toast.error(
+        "Server error while creating booking"
+      );
     }
   };
   return (
