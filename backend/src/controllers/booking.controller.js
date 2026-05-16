@@ -192,7 +192,9 @@ const getBookings = async (req, res) => {
                 ? { gte: new Date(fromDate) }
                 : {}),
               ...(toDate && !isNaN(new Date(toDate))
-                ? { lte: new Date(toDate) }
+                ? { lte: new Date(
+                  new Date(toDate).setHours(23, 59, 59, 999)
+                ) }
                 : {}),
             },
           }
@@ -444,129 +446,214 @@ const deleteBooking =
 // =========================================
 // BOOKING SUMMARY + CHART DATA
 // =========================================
-const getBookingSummary =
-  async (req, res) => {
-    try {
+const getBookingSummary = async (req, res) => {
+  try {
+    const clean = (value) => {
+      if (!value) return undefined;
 
-      const bookings =
-        await prisma.booking.findMany({
-          where: {
-            createdById:
-              req.user.sub,
+      if (
+        ([_, value]) =>
+          value !== "" &&
+          value !== null &&
+          value !== undefined
+      ) {
+        return undefined;
+      }
+
+      return value;
+    };
+
+    // QUERY PARAMS
+    const fromDate = clean(req.query.fromDate);
+    const toDate = clean(req.query.toDate);
+    const status = clean(req.query.status);
+    const busId = clean(req.query.busId);
+    const routeId = clean(req.query.routeId);
+    const search = clean(req.query.search);
+
+    // FILTERS
+    const where = {
+      createdById: req.user.sub,
+
+      ...(status && {
+        status,
+      }),
+
+      ...(busId && {
+        busId,
+      }),
+
+      ...(routeId && {
+        routeId,
+      }),
+
+      ...(search && {
+        OR: [
+          {
+            passengerName: {
+              contains: search,
+              mode: "insensitive",
+            },
           },
 
-          orderBy: {
-            journeyDate: "asc",
+          {
+            bookingCode: {
+              contains: search,
+              mode: "insensitive",
+            },
           },
-        });
 
-      // COUNTS
-      const totalBookings =
-        bookings.length;
+          {
+            phone: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        ],
+      }),
 
-      const confirmedBookings =
-        bookings.filter(
-          (b) =>
-            b.status ===
-            "CONFIRMED"
-        ).length;
+      ...(fromDate || toDate
+        ? {
+            journeyDate: {
+              ...(fromDate &&
+              !isNaN(new Date(fromDate))
+                ? {
+                    gte: new Date(fromDate),
+                  }
+                : {}),
 
-      const pendingBookings =
-        bookings.filter(
-          (b) =>
-            b.status === "PENDING"
-        ).length;
+              ...(toDate &&
+              !isNaN(new Date(toDate))
+                ? {
+                    lte: new Date(toDate),
+                  }
+                : {}),
+            },
+          }
+        : {}),
+    };
 
-      const cancelledBookings =
-        bookings.filter(
-          (b) =>
-            b.status ===
-            "CANCELLED"
-        ).length;
+    // BOOKINGS
+    const bookings =
+      await prisma.booking.findMany({
+        where,
 
-      // REVENUE
-      const totalRevenue =
-        bookings.reduce(
-          (sum, booking) =>
-            sum + booking.amount,
-          0
-        );
-
-      // MONTHLY CHART DATA
-      const monthlyMap = {};
-
-      bookings.forEach((booking) => {
-
-        const month =
-          new Date(
-            booking.journeyDate
-          ).toLocaleString("default", {
-            month: "short",
-          });
-
-        if (!monthlyMap[month]) {
-
-          monthlyMap[month] = {
-            month,
-            bookings: 0,
-            revenue: 0,
-          };
-        }
-
-        monthlyMap[month].bookings += 1;
-
-        monthlyMap[month].revenue +=
-          booking.amount;
+        orderBy: {
+          journeyDate: "asc",
+        },
       });
 
-      const monthlyBookings =
-        Object.values(monthlyMap).map(
-          (item) => ({
-            month: item.month,
-            bookings: item.bookings,
-          })
-        );
+    // COUNTS
+    const totalBookings =
+      bookings.length;
 
-      const monthlyRevenue =
-        Object.values(monthlyMap).map(
-          (item) => ({
-            month: item.month,
-            revenue: item.revenue,
-          })
-        );
+    const confirmedBookings =
+      bookings.filter(
+        (b) =>
+          b.status === "CONFIRMED"
+      ).length;
 
-      res.json({
-        success: true,
+    const pendingBookings =
+      bookings.filter(
+        (b) =>
+          b.status === "PENDING"
+      ).length;
 
-        totalBookings,
+    const cancelledBookings =
+      bookings.filter(
+        (b) =>
+          b.status === "CANCELLED"
+      ).length;
 
-        confirmedBookings,
-
-        pendingBookings,
-
-        cancelledBookings,
-
-        totalRevenue,
-
-        monthlyBookings,
-
-        monthlyRevenue,
-      });
-
-    } catch (error) {
-
-      console.error(
-        "Booking Summary Error:",
-        error
+    // REVENUE
+    const totalRevenue =
+      bookings.reduce(
+        (sum, booking) =>
+          sum + booking.amount,
+        0
       );
 
-      res.status(500).json({
-        success: false,
-        message:
-          "Failed to fetch booking summary",
-      });
-    }
-  };
+    // MONTHLY CHART DATA
+  const monthlyMap = {};
+
+bookings.forEach((booking) => {
+
+  const month = new Date(
+    booking.journeyDate
+  ).toLocaleString("default", {
+    month: "short",
+  });
+
+  if (!monthlyMap[month]) {
+
+    monthlyMap[month] = {
+      month,
+      confirmed: 0,
+      pending: 0,
+      cancelled: 0,
+      revenue: 0,
+    };
+  }
+
+  if (booking.status === "CONFIRMED") {
+    monthlyMap[month].confirmed += 1;
+  }
+
+  if (booking.status === "PENDING") {
+    monthlyMap[month].pending += 1;
+  }
+
+  if (booking.status === "CANCELLED") {
+    monthlyMap[month].cancelled += 1;
+  }
+
+  monthlyMap[month].revenue += booking.amount;
+});
+
+    const monthlyBookings =
+    Object.values(monthlyMap)
+    
+    
+    const monthlyRevenue =
+      Object.values(monthlyMap).map(
+        (item) => ({
+          month: item.month,
+          revenue: item.revenue,
+        })
+      );
+
+    res.json({
+      success: true,
+
+      totalBookings,
+
+      confirmedBookings,
+
+      pendingBookings,
+
+      cancelledBookings,
+
+      totalRevenue,
+
+      bookingChart:
+        monthlyBookings,
+
+      revenueChart:
+        monthlyRevenue,
+    });
+  } catch (error) {
+    console.error(
+      "Booking Summary Error:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message:
+        "Failed to fetch booking summary",
+    });
+  }
+};
 
 // =========================================
 // EXPORT BOOKINGS

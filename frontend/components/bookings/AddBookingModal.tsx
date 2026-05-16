@@ -8,7 +8,6 @@ import { toast } from "sonner";
 interface Props {
   open: boolean;
   setOpen: (value: boolean) => void;
-  fetchBookings: () => void; 
   onSuccess?: () => void;
 }
 
@@ -374,17 +373,10 @@ export default function AddBookingModal({
       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
     >
 
-      <option value="CONFIRMED">
-        Confirmed
-      </option>
-
-      <option value="PENDING">
-        Pending
-      </option>
-
-      <option value="CANCELLED">
-        Cancelled
-      </option>
+<option value="">All Status</option>
+<option value="CONFIRMED">Confirmed</option>
+<option value="PENDING">Pending</option>
+<option value="CANCELLED">Cancelled</option>
 
     </select>
   </div>

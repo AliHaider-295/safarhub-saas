@@ -10,10 +10,7 @@ const BookingCards = dynamic(
   { ssr: false }
 );
 
-const BookingFilters = dynamic(
-  () => import("@/components/bookings/BookingFilters"),
-  { ssr: false }
-);
+import BookingFilters from "@/components/bookings/BookingFilters";
 
 const BookingOverviewChart = dynamic(
   () => import("@/components/bookings/BookingOverviewChart"),
@@ -55,6 +52,7 @@ export default function BookingsPage() {
   useState<BookingStats | null>(null);
   const [routes, setRoutes] = useState([]);
   const [buses, setBuses] = useState([]);
+  
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [pagination, setPagination] = useState({
     total: 0,
@@ -63,80 +61,146 @@ export default function BookingsPage() {
     hasPrevPage: false,
   });
  
-const applyFilters = () => {
-  setPage(1);
-  setAppliedFilters(filters);
-};
+  const applyFilters = () => {
 
-const fetchBookings = async () => {
-  try {
-    setBookingsLoading(true);
+    console.log("APPLY CLICKED");
 
-    const query = new URLSearchParams({
-      page: String(page),
-      limit: "10",
-    
-      ...Object.fromEntries(
-        Object.entries(appliedFilters).filter(
-          ([_, value]) => value !== ""
-        )
-      ),
-    }).toString();
+    console.log("FILTERS:", filters);
+  
+    const updatedFilters = {
+      ...filters,
+    };
 
-    const response = await authFetch(`/bookings?${query}`);
-
-    const result = await response.json();
-
-    if (result.success) {
-      setBookings(result.data || []);
-
-      setPagination({
-        total: result.pagination?.total || 0,
-        totalPages: result.pagination?.totalPages || 1,
-        hasNextPage: result.pagination?.hasNextPage || false,
-        hasPrevPage: result.pagination?.hasPrevPage || false,
-      });
-    }
-  } catch (error) {
-    console.error("Fetch Booking Error:", error);
-  } finally {
-    setBookingsLoading(false);
-  }
-};
-
-
-const fetchDashboard = async () => {
-  try {
-    setLoading(true);
-
-    const cleanFilters = Object.fromEntries(
-      Object.entries(appliedFilters).filter(
-        ([_, value]) => value !== ""
-      )
+    console.log(
+      "UPDATED:",
+      updatedFilters
     );
+  
+  
+    setPage(1);
+  
+    setAppliedFilters(updatedFilters);
+  };
 
-    const query = new URLSearchParams(cleanFilters).toString();
-
-    const response = await authFetch(`/bookings/summary?${query}`);
-    const result = await response.json();
-
-    if (result.success) {
-      setDashboardData({
-        totalBookings: result.totalBookings,
-        confirmed: result.confirmedBookings,
-        pending: result.pendingBookings,
-        cancelled: result.cancelledBookings,
-        revenue: result.totalRevenue ?? 0,
-        bookingChart: result.bookingChart,
-        revenueChart: result.revenueChart,
-      });
+  const fetchBookings = async () => {
+    try {
+      setBookingsLoading(true);
+  
+      const cleanFilters = Object.fromEntries(
+        Object.entries(appliedFilters).filter(
+          ([_, value]) =>
+            value !== "" &&
+            value !== null &&
+            value !== undefined
+        )
+      );
+  
+      const query = new URLSearchParams({
+        page: String(page),
+        limit: "10",
+        ...cleanFilters,
+      } as Record<string, string>).toString();
+  
+      console.log("BOOKING QUERY:", query);
+  
+      const response = await authFetch(
+        `/bookings?${query}`
+      );
+  
+      const result = await response.json();
+  
+      if (result.success) {
+        setBookings(result.data || []);
+  
+        setPagination({
+          total:
+            result.pagination?.total || 0,
+  
+          totalPages:
+            result.pagination
+              ?.totalPages || 1,
+  
+          hasNextPage:
+            result.pagination
+              ?.hasNextPage || false,
+  
+          hasPrevPage:
+            result.pagination
+              ?.hasPrevPage || false,
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Fetch Booking Error:",
+        error
+      );
+    } finally {
+      setBookingsLoading(false);
     }
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+
+  const fetchDashboard = async () => {
+    try {
+      setLoading(true);
+  
+      const cleanFilters = Object.fromEntries(
+        Object.entries(appliedFilters).filter(
+          ([_, value]) =>
+            value !== "" &&
+            value !== null &&
+            value !== undefined
+        )
+      );
+  
+      const query = new URLSearchParams(
+        cleanFilters as Record<
+          string,
+          string
+        >
+      ).toString();
+  
+      console.log(
+        "DASHBOARD QUERY:",
+        query
+      );
+  
+      const response = await authFetch(
+        `/bookings/summary?${query}`
+      );
+  
+      const result = await response.json();
+  
+      if (result.success) {
+        setDashboardData({
+          totalBookings:
+            result.totalBookings,
+  
+          confirmed:
+            result.confirmedBookings,
+  
+          pending:
+            result.pendingBookings,
+  
+          cancelled:
+            result.cancelledBookings,
+  
+          revenue:
+            result.totalRevenue ?? 0,
+  
+          bookingChart:
+            result.bookingChart || [],
+  
+          revenueChart:
+            result.revenueChart || [],
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
 
@@ -168,17 +232,21 @@ const fetchDashboard = async () => {
 
   const handleBookingCreated = () => {
     fetchBookings();
-    fetchDashboard();   // ⭐ ONLY THIS
+    fetchDashboard();  
+    // ⭐ ONLY THIS
   };
+  console.log(appliedFilters);
 
   useEffect(() => {
     Promise.all([fetchRoutes(), fetchBuses()]);
   }, []);
+
   
   useEffect(() => {
     fetchBookings();
     fetchDashboard();
   }, [page, appliedFilters]);
+  console.log(dashboardData);
   return (
     <div className="p-6 lg:p-8 space-y-6">
 
@@ -234,7 +302,7 @@ const fetchDashboard = async () => {
       {/* ================= TABLE ================= */}
       <BookingTable
   bookings={bookings}
-  loading={bookingsLoading}
+ loading={bookingsLoading}
   pagination={pagination}
   page={page}
   setPage={setPage}

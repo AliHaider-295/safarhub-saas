@@ -1,4 +1,38 @@
+"use client";
+import React from "react";
 import { Filter, Download } from "lucide-react";
+
+interface Filters {
+  fromDate: string;
+  toDate: string;
+  status: string;
+  routeId: string;
+  busId: string;
+}
+
+interface Route {
+  id: string;
+  from: string;
+  to: string;
+}
+
+interface Bus {
+  id: string;
+  busNumber: string;
+}
+interface Props {
+  filters: Filters;
+
+  setFilters: React.Dispatch<
+    React.SetStateAction<Filters>
+  >;
+
+  onApplyFilters: (filters: Filters) => void;
+
+  routes?: Route[];
+
+  buses?: Bus[];
+}
 
 export default function BookingFilters({
   filters,
@@ -6,14 +40,20 @@ export default function BookingFilters({
   onApplyFilters,
   routes = [],
   buses = [],
-}) {
-  const handleChange = (key, value) => {
+}: Props) {
+
+  const handleChange = (
+    key: string,
+    value: string
+  ) => {
+  
+    console.log("CHANGE:", key, value);
+  
     setFilters((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
-
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
       <div className="flex flex-wrap items-end gap-4">
@@ -50,15 +90,26 @@ export default function BookingFilters({
             STATUS
           </label>
           <select
-            value={filters.status || ""}
-            onChange={(e) => handleChange("status", e.target.value)}
-            className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            <option value="">All Status</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="pending">Pending</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+  value={filters.status || ""}
+  onChange={(e) =>
+    handleChange(
+      "status",
+      e.target.value
+    )
+  }
+  className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+>
+  <option value="">All Status</option>
+  <option value="CONFIRMED">
+    Confirmed
+  </option>
+  <option value="PENDING">
+    Pending
+  </option>
+  <option value="CANCELLED">
+    Cancelled
+  </option>
+</select>
         </div>
 
         {/* ROUTE */}
@@ -72,9 +123,10 @@ export default function BookingFilters({
             className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
             <option value="">All Routes</option>
-            {routes.map((route) => (
-              <option key={route._id} value={route._id}>
-                {route.name}
+            {Array.isArray(routes) &&
+            routes.map((route: any) => (
+              <option key={route.id} value={route.id}>
+               {route.from} → {route.to}
               </option>
             ))}
           </select>
@@ -91,8 +143,9 @@ export default function BookingFilters({
             className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
             <option value="">All Buses</option>
-            {buses.map((bus) => (
-              <option key={bus._id} value={bus._id}>
+            {Array.isArray(buses) &&
+            buses.map((bus: any) => (
+              <option key={bus.id} value={bus.id}>
                 {bus.busNumber}
               </option>
             ))}
@@ -101,13 +154,13 @@ export default function BookingFilters({
 
         {/* BUTTONS */}
         <div className="flex gap-3 ml-auto">
-          <button
-            onClick={onApplyFilters}
-            className="h-10 px-4 border border-gray-200 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-gray-50 transition"
-          >
-            <Filter size={16} />
-            Filter
-          </button>
+        <button
+  onClick={() => onApplyFilters(filters)}
+  className="h-10 px-4 border border-gray-200 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-gray-50 transition"
+>
+  <Filter size={16} />
+  Filter
+</button>
 
           <button className="h-10 px-4 border border-gray-200 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-gray-50 transition">
             <Download size={16} />

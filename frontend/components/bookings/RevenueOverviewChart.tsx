@@ -10,26 +10,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { day: "May 01", revenue: 160000 },
-  { day: "May 03", revenue: 210000 },
-  { day: "May 05", revenue: 280000 },
-  { day: "May 07", revenue: 260000 },
-  { day: "May 09", revenue: 340000 },
-  { day: "May 11", revenue: 360000 },
-  { day: "May 13", revenue: 300000 },
-  { day: "May 15", revenue: 310000 },
-  { day: "May 17", revenue: 440000 },
-  { day: "May 19", revenue: 330000 },
-  { day: "May 21", revenue: 360000 },
-  { day: "May 23", revenue: 480000 },
-  { day: "May 25", revenue: 420000 },
-  { day: "May 27", revenue: 370000 },
-  { day: "May 29", revenue: 440000 },
-  { day: "May 31", revenue: 320000 },
-];
+const data = [];
 
-export default function RevenueOverviewChart() {
+export default function RevenueOverviewChart({
+  data = [],
+}) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 w-full h-[360px]">
       
@@ -85,7 +70,7 @@ export default function RevenueOverviewChart() {
             />
 
             <XAxis
-              dataKey="day"
+              dataKey="month"
               tickLine={false}
               axisLine={false}
               tick={{
