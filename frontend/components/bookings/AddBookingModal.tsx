@@ -9,12 +9,13 @@ interface Props {
   open: boolean;
   setOpen: (value: boolean) => void;
   fetchBookings: () => void; 
+  onSuccess?: () => void;
 }
 
 export default function AddBookingModal({
   open,
   setOpen,
-  fetchBookings,
+  onSuccess,
 }: Props) {
 
   const [buses, setBuses] = useState([]);
@@ -141,20 +142,17 @@ export default function AddBookingModal({
     
       // ✅ SUCCESS
       if (response.ok && result.success) {
-    
-        // ✅ refresh latest bookings + pagination
-        await fetchBookings();
-    
-        // ✅ close modal
+
+        onSuccess?.();
+      
         setOpen(false);
-    
-        // ✅ success toast
+      
         toast.success(
           "Booking created successfully"
         );
-    
+      
       } else {
-    
+      
         toast.error(
           result.message ||
           "Failed to create booking"

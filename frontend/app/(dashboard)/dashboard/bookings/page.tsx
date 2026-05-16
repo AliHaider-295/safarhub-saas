@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { authFetch } from "@/lib/api";
 import toast from "react-hot-toast";
-import type { BookingStats } from "@/components/bookings/BookingCards";
 // 🚀 Disable SSR for heavy UI parts (fix hydration mismatch)
 const BookingCards = dynamic(
   () => import("@/components/bookings/BookingCards"),
@@ -56,7 +55,6 @@ export default function BookingsPage() {
   useState<BookingStats | null>(null);
   const [routes, setRoutes] = useState([]);
   const [buses, setBuses] = useState([]);
-  const [stats, setStats] = useState(null);
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [pagination, setPagination] = useState({
     total: 0,
@@ -75,8 +73,14 @@ const fetchBookings = async () => {
     setBookingsLoading(true);
 
     const query = new URLSearchParams({
-     
-      ...appliedFilters,
+      page: String(page),
+      limit: "10",
+    
+      ...Object.fromEntries(
+        Object.entries(appliedFilters).filter(
+          ([_, value]) => value !== ""
+        )
+      ),
     }).toString();
 
     const response = await authFetch(`/bookings?${query}`);
@@ -100,6 +104,7 @@ const fetchBookings = async () => {
   }
 };
 
+
 const fetchDashboard = async () => {
   try {
     setLoading(true);
@@ -110,49 +115,32 @@ const fetchDashboard = async () => {
       )
     );
 
-    const query = new URLSearchParams({
-     
-      ...cleanFilters,
-    }).toString();
+    const query = new URLSearchParams(cleanFilters).toString();
 
-    const response = await authFetch(
-      `/bookings/summary?${query}`
-    );
-
+    const response = await authFetch(`/bookings/summary?${query}`);
     const result = await response.json();
 
-    console.log(result, "SUMMARY API RESPONSE");
-
     if (result.success) {
-      setDashboardData(result.data);
-    }
-  } catch (error) {
-    console.error("Fetch Dashboard Error:", error);
-  } finally {
-    setLoading(false);
-  }
-};
-const fetchSummary = async () => {
-  try {
-    const response = await authFetch("/bookings/summary");
-
-    const result = await response.json();
-
-    console.log("SUMMARY API RESPONSE:", result);
-
-    if (result.success) {
-      setStats({
+      setDashboardData({
         totalBookings: result.totalBookings,
         confirmed: result.confirmedBookings,
         pending: result.pendingBookings,
         cancelled: result.cancelledBookings,
         revenue: result.totalRevenue ?? 0,
+        bookingChart: result.bookingChart,
+        revenueChart: result.revenueChart,
       });
     }
   } catch (error) {
-    console.error("Fetch Summary Error:", error);
+    console.error(error);
+  } finally {
+    setLoading(false);
   }
 };
+
+
+
+
   const fetchRoutes = async () => {
     try {
       const response = await authFetch("/routes");
@@ -177,13 +165,19 @@ const fetchSummary = async () => {
       console.error("Fetch Buses Error:", error);
     }
   };
+
+  const handleBookingCreated = () => {
+    fetchBookings();
+    fetchDashboard();   // ⭐ ONLY THIS
+  };
+
   useEffect(() => {
     Promise.all([fetchRoutes(), fetchBuses()]);
   }, []);
   
   useEffect(() => {
     fetchBookings();
-    fetchSummary();
+    fetchDashboard();
   }, [page, appliedFilters]);
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -210,10 +204,10 @@ const fetchSummary = async () => {
       </div>
 
       {/* ================= MODAL ================= */}
-      <AddBookingModal open={open}setOpen={setOpen}fetchBookings={fetchBookings}/>
+      <AddBookingModal open={open}setOpen={setOpen}onSuccess={handleBookingCreated}/>
 
       {/* ================= CARDS ================= */}
-      <BookingCards stats={stats} />
+      <BookingCards stats={dashboardData} />
 
 
 
@@ -240,7 +234,7 @@ const fetchSummary = async () => {
       {/* ================= TABLE ================= */}
       <BookingTable
   bookings={bookings}
-  loading={loading}
+  loading={bookingsLoading}
   pagination={pagination}
   page={page}
   setPage={setPage}
