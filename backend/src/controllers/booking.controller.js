@@ -112,15 +112,25 @@ const createBooking = async (req, res) => {
 // =========================================
 const getBookings = async (req, res) => {
   try {
-
-    const {
-      fromDate,
-      toDate,
-      status,
-      busId,
-      routeId,
-      search,
-    } = req.query;
+    const clean = (value) => {
+      if (!value) return undefined;
+    
+      if (
+        value === "" ||
+        value === "null" ||
+        value === "undefined"
+      ) {
+        return undefined;
+      }
+    
+      return value;
+    };
+    const fromDate = clean(req.query.fromDate);
+    const toDate = clean(req.query.toDate);
+    const status = clean(req.query.status);
+    const busId = clean(req.query.busId);
+    const routeId = clean(req.query.routeId);
+    const search = clean(req.query.search);
 
     // PAGINATION
     const page =
@@ -175,23 +185,19 @@ const getBookings = async (req, res) => {
           },
         ],
       }),
-
       ...(fromDate || toDate
         ? {
             journeyDate: {
-
-              ...(fromDate && {
-                gte: new Date(fromDate),
-              }),
-
-              ...(toDate && {
-                lte: new Date(toDate),
-              }),
+              ...(fromDate && !isNaN(new Date(fromDate))
+                ? { gte: new Date(fromDate) }
+                : {}),
+              ...(toDate && !isNaN(new Date(toDate))
+                ? { lte: new Date(toDate) }
+                : {}),
             },
           }
         : {}),
     };
-
     // TOTAL COUNT
     const total =
       await prisma.booking.count({
