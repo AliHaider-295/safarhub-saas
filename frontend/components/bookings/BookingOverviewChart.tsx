@@ -10,11 +10,20 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [];
+
+interface Props {
+  data?: {
+    month: string;
+    confirmed: number;
+    pending: number;
+    cancelled: number;
+  }[];
+}
 
 export default function BookingOverviewChart({
   data = [],
-}) {
+}: Props)
+ {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 w-full h-[360px]">
 
@@ -133,25 +142,42 @@ export default function BookingOverviewChart({
               stroke="#e5e7eb"
             />
 
-        <XAxis dataKey="month" />
+<XAxis
+  dataKey="month"
+  tickLine={false}
+  axisLine={false}
+  tick={{
+    fontSize: 12,
+    fill: "#6b7280",
+  }}
+/>
 
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tick={{
-                fontSize: 12,
-                fill: "#6b7280",
-              }}
-            />
+          
 
             <Tooltip />
 
             <Area
   type="monotone"
-  dataKey="bookings"
-  stroke="#2563eb"
+  dataKey="confirmed"
+  stroke="#22c55e"
   strokeWidth={3}
   fill="url(#confirmed)"
+/>
+
+<Area
+  type="monotone"
+  dataKey="pending"
+  stroke="#facc15"
+  strokeWidth={3}
+  fill="url(#pending)"
+/>
+
+<Area
+  type="monotone"
+  dataKey="cancelled"
+  stroke="#ef4444"
+  strokeWidth={3}
+  fill="url(#cancelled)"
 />
           </AreaChart>
         </ResponsiveContainer>

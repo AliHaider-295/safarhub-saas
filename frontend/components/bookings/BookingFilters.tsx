@@ -32,12 +32,14 @@ interface Props {
   routes?: Route[];
 
   buses?: Bus[];
+  onExport: () => void;
 }
 
 export default function BookingFilters({
   filters,
   setFilters,
   onApplyFilters,
+  onExport,
   routes = [],
   buses = [],
 }: Props) {
@@ -47,7 +49,6 @@ export default function BookingFilters({
     value: string
   ) => {
   
-    console.log("CHANGE:", key, value);
   
     setFilters((prev) => ({
       ...prev,
@@ -124,7 +125,7 @@ export default function BookingFilters({
           >
             <option value="">All Routes</option>
             {Array.isArray(routes) &&
-            routes.map((route: any) => (
+            routes.map((route) => (
               <option key={route.id} value={route.id}>
                {route.from} → {route.to}
               </option>
@@ -144,7 +145,7 @@ export default function BookingFilters({
           >
             <option value="">All Buses</option>
             {Array.isArray(buses) &&
-            buses.map((bus: any) => (
+            buses.map((bus) => (
               <option key={bus.id} value={bus.id}>
                 {bus.busNumber}
               </option>
@@ -162,7 +163,10 @@ export default function BookingFilters({
   Filter
 </button>
 
-          <button className="h-10 px-4 border border-gray-200 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-gray-50 transition">
+<button
+  onClick={onExport}
+  className="h-10 px-4 border border-gray-200 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-gray-50 transition"
+>
             <Download size={16} />
             Export
           </button>

@@ -449,17 +449,17 @@ const deleteBooking =
 const getBookingSummary = async (req, res) => {
   try {
     const clean = (value) => {
-      if (!value) return undefined;
 
       if (
-        ([_, value]) =>
-          value !== "" &&
-          value !== null &&
-          value !== undefined
+        value === "" ||
+        value === null ||
+        value === undefined ||
+        value === "null" ||
+        value === "undefined"
       ) {
         return undefined;
       }
-
+    
       return value;
     };
 
@@ -574,45 +574,47 @@ const getBookingSummary = async (req, res) => {
       );
 
     // MONTHLY CHART DATA
-  const monthlyMap = {};
+    const monthlyMap = {};
 
-bookings.forEach((booking) => {
-
-  const month = new Date(
-    booking.journeyDate
-  ).toLocaleString("default", {
-    month: "short",
-  });
-
-  if (!monthlyMap[month]) {
-
-    monthlyMap[month] = {
-      month,
-      confirmed: 0,
-      pending: 0,
-      cancelled: 0,
-      revenue: 0,
-    };
-  }
-
-  if (booking.status === "CONFIRMED") {
-    monthlyMap[month].confirmed += 1;
-  }
-
-  if (booking.status === "PENDING") {
-    monthlyMap[month].pending += 1;
-  }
-
-  if (booking.status === "CANCELLED") {
-    monthlyMap[month].cancelled += 1;
-  }
-
-  monthlyMap[month].revenue += booking.amount;
-});
-
-    const monthlyBookings =
-    Object.values(monthlyMap)
+    bookings.forEach((booking) => {
     
+      const month = new Date(
+        booking.journeyDate
+      ).toLocaleString("default", {
+        month: "short",
+      });
+    
+      // CREATE MONTH
+      if (!monthlyMap[month]) {
+    
+        monthlyMap[month] = {
+          month,
+          confirmed: 0,
+          pending: 0,
+          cancelled: 0,
+          revenue: 0,
+        };
+      }
+    
+      // STATUS COUNTS
+      if (booking.status === "CONFIRMED") {
+        monthlyMap[month].confirmed += 1;
+      }
+    
+      if (booking.status === "PENDING") {
+        monthlyMap[month].pending += 1;
+      }
+    
+      if (booking.status === "CANCELLED") {
+        monthlyMap[month].cancelled += 1;
+      }
+    
+      // REVENUE
+      monthlyMap[month].revenue += booking.amount;
+    });
+    
+    const bookingChart =
+      Object.values(monthlyMap);
     
     const monthlyRevenue =
       Object.values(monthlyMap).map(
@@ -622,25 +624,25 @@ bookings.forEach((booking) => {
         })
       );
 
-    res.json({
-      success: true,
-
-      totalBookings,
-
-      confirmedBookings,
-
-      pendingBookings,
-
-      cancelledBookings,
-
-      totalRevenue,
-
-      bookingChart:
-        monthlyBookings,
-
-      revenueChart:
-        monthlyRevenue,
-    });
+      res.json({
+        success: true,
+      
+        totalBookings,
+      
+        confirmedBookings,
+      
+        pendingBookings,
+      
+        cancelledBookings,
+      
+        totalRevenue,
+      
+        bookingChart,
+      
+        revenueChart:
+          monthlyRevenue,
+      });
+      
   } catch (error) {
     console.error(
       "Booking Summary Error:",
@@ -658,46 +660,76 @@ bookings.forEach((booking) => {
 // =========================================
 // EXPORT BOOKINGS
 // =========================================
-const exportBookings =
-  async (req, res) => {
-    try {
+const exportBookings = async (req, res) => {
+  try {
 
-      const bookings =
-        await prisma.booking.findMany({
-          where: {
-            createdById:
-              req.user.sub,
-          },
+    const {
+      busId,
+      routeId,
+      status,
+      fromDate,
+      toDate,
+    } = req.query;
 
-          include: {
-            bus: true,
-            route: true,
-          },
+    console.log("EXPORT QUERY:", req.query);
 
-          orderBy: {
-            createdAt: "desc",
-          },
-        });
+    const where = {
+      createdById: req.user.sub,
+    };
 
-      res.json({
-        success: true,
-        data: bookings,
-      });
-
-    } catch (error) {
-
-      console.error(
-        "Export Booking Error:",
-        error
-      );
-
-      res.status(500).json({
-        success: false,
-        message:
-          "Failed to export bookings",
-      });
+    // ✅ bus filter
+    if (busId) {
+      where.busId = busId;
     }
-  };
+
+    // ✅ route filter
+    if (routeId) {
+      where.routeId = routeId;
+    }
+
+    // ✅ status filter
+    if (status) {
+      where.status = status;
+    }
+
+    // ✅ date filter
+    if (fromDate || toDate) {
+      where.createdAt = {};
+
+      if (fromDate) {
+        where.createdAt.gte = new Date(fromDate);
+      }
+
+      if (toDate) {
+        where.createdAt.lte = new Date(toDate);
+      }
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where,
+      include: {
+        bus: true,
+        route: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.json({
+      success: true,
+      data: bookings,
+    });
+
+  } catch (error) {
+    console.error("Export Booking Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to export bookings",
+    });
+  }
+};
 
 // =========================================
 // EXPORTS

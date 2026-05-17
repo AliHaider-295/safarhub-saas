@@ -48,8 +48,7 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [dashboardData, setDashboardData] =
-  useState<BookingStats | null>(null);
+  const [dashboardData, setDashboardData] = useState<BookingStats | null>(null);
   const [routes, setRoutes] = useState([]);
   const [buses, setBuses] = useState([]);
   
@@ -61,26 +60,26 @@ export default function BookingsPage() {
     hasPrevPage: false,
   });
  
-  const applyFilters = () => {
-
-    console.log("APPLY CLICKED");
-
-    console.log("FILTERS:", filters);
-  
-    const updatedFilters = {
-      ...filters,
-    };
-
-    console.log(
-      "UPDATED:",
-      updatedFilters
-    );
-  
+  const applyFilters = (
+    updatedFilters
+  ) => {
   
     setPage(1);
   
-    setAppliedFilters(updatedFilters);
+    setAppliedFilters(
+      updatedFilters
+    );
   };
+
+  const buildQuery = () => {
+    const params = new URLSearchParams();
+
+    if (filters.busId) params.append("busId", filters.busId);
+    if (filters.routeId) params.append("routeId", filters.routeId);
+    if (filters.status) params.append("status", filters.status);
+    if (filters.fromDate) params.append("fromDate", filters.fromDate);
+    if (filters.toDate) params.append("toDate", filters.toDate);
+  }
 
   const fetchBookings = async () => {
     try {
@@ -202,33 +201,51 @@ export default function BookingsPage() {
     }
   };
 
-
-
-
   const fetchRoutes = async () => {
     try {
       const response = await authFetch("/routes");
-      const result = await response.json();
   
-      if (result.success) {
-        setRoutes(result.data || []);
-      }
+      const data = await response.json(); // ⭐ REQUIRED
+  
+      console.log("ROUTES API:", data);
+  
+      setRoutes(
+        data.map((route: any) => ({
+          id: route._id || route.id,
+          from: route.from,
+          to: route.to,
+        }))
+      );
     } catch (error) {
-      console.error("Fetch Routes Error:", error);
+      console.error("Routes error:", error);
     }
   };
+
+
+ 
   const fetchBuses = async () => {
     try {
       const response = await authFetch("/buses");
-      const result = await response.json();
   
-      if (result.success) {
-        setBuses(result.data || []);
-      }
+      const data = await response.json(); // ⭐ REQUIRED
+  
+      console.log("BUSES API:", data);
+  
+      setBuses(
+        data.map((bus: any) => ({
+          id: bus._id || bus.id,
+          busNumber: bus.busNumber || bus.number,
+        }))
+      );
     } catch (error) {
-      console.error("Fetch Buses Error:", error);
+      console.error("Buses error:", error);
     }
   };
+
+  const handleApplyFilters = () => {
+    setAppliedFilters({ ...filters });
+  };
+
 
   const handleBookingCreated = () => {
     fetchBookings();
@@ -237,16 +254,94 @@ export default function BookingsPage() {
   };
   console.log(appliedFilters);
 
+ 
+  const handleExport = async () => {
+    try {
+      // ✅ build query from filters
+      const params = new URLSearchParams();
+  
+      if (filters.status)
+        params.append("status", filters.status);
+  
+      if (filters.routeId)
+        params.append("routeId", filters.routeId);
+  
+      if (filters.busId)
+        params.append("busId", filters.busId);
+  
+      if (filters.fromDate)
+        params.append("fromDate", filters.fromDate);
+  
+      if (filters.toDate)
+        params.append("toDate", filters.toDate);
+  
+      const url = `/bookings/export?${params.toString()}`;
+  
+      console.log("EXPORT URL:", url);
+  
+      const response = await authFetch(url);
+      const result = await response.json();
+  
+      const bookings = result.data || [];
+  
+      if (!bookings.length) {
+        alert("No data to export");
+        return;
+      }
+  
+      // ✅ Convert to CSV
+      const headers = [
+        "Booking ID",
+        "Passenger",
+        "Status",
+        "Route",
+        "Bus",
+        "Date",
+      ];
+  
+      const rows = bookings.map((b: any) => [
+        b.id,
+        b.passengerName,
+        b.status,
+        `${b.route?.from} → ${b.route?.to}`,
+        b.bus?.busNumber,
+        new Date(b.createdAt).toLocaleDateString(),
+      ]);
+  
+      const csvContent =
+        [headers, ...rows]
+          .map((row) => row.join(","))
+          .join("\n");
+  
+      // ✅ Create downloadable file
+      const blob = new Blob([csvContent], {
+        type: "text/csv;charset=utf-8;",
+      });
+  
+      const link = document.createElement("a");
+  
+      link.href = URL.createObjectURL(blob);
+      link.download = `bookings-${Date.now()}.csv`;
+  
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  
+    } catch (error) {
+      console.error("Export error:", error);
+    }
+  };
+  
   useEffect(() => {
-    Promise.all([fetchRoutes(), fetchBuses()]);
+    console.log("🚀 LOADING ROUTES & BUSES");
+    fetchRoutes();
+    fetchBuses();
   }, []);
-
   
   useEffect(() => {
     fetchBookings();
     fetchDashboard();
   }, [page, appliedFilters]);
-  console.log(dashboardData);
   return (
     <div className="p-6 lg:p-8 space-y-6">
 
@@ -286,12 +381,13 @@ export default function BookingsPage() {
   onApplyFilters={applyFilters}
   routes={routes}
   buses={buses}
+  onExport={handleExport}
 />
 
       {/* ================= CHARTS ================= */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
       <BookingOverviewChart
-  data={dashboardData?.bookingChart}
+ data={dashboardData?.bookingChart || []}
 />
 
 <RevenueOverviewChart
