@@ -15,7 +15,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  FileText
+  FileText,
+  UserRoundPen
 } from "lucide-react";
 import { useState } from "react";
 import {  } from "lucide-react";
@@ -31,6 +32,7 @@ export default function Sidebar() {
     { name: "Staff", href: "/dashboard/staff", icon: UserCog },
     { name: "Records", href: "/dashboard/records", icon: FileText },
     { name: "Bookings", href: "/dashboard/bookings", icon: Ticket },
+    { name: "Profile", href: "/dashboard/profile", icon: UserRoundPen },
     { name: "Finance", href: "/dashboard/finance", icon: Wallet },
     { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },

@@ -3,6 +3,7 @@
 const express = require("express");
 const cors = require("cors");
 
+const profileRoutes = require("./routes/profile.routes");
 const authRoutes = require("./routes/auth.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const tripRoutes = require("./routes/trip.routes");
@@ -52,7 +53,7 @@ app.use((req, _res, next) => {
 app.get("/api/health", (_req, res) => {
   res.json({ success: true, message: "ok" });
 });
-
+app.use("/api/profile", profileRoutes);
 app.use("/api/auth", authRoutes);            // ✅ ADD (you missed this)
 app.use("/api/dashboard", dashboardRoutes); // ✅ KEEP
 app.use("/api/trips", tripRoutes);

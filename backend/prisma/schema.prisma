@@ -27,19 +27,38 @@ enum BookingStatus {
 
 model User {
   id          String   @id @default(uuid())
+
+  // Company Info
   companyName String
+
+  // Auth
   email       String   @unique
   password    String
+
+  // Profile Info
+  fullName    String?
+  phone       String?
+  address     String?
+  avatar      String?
+  role        String   @default("admin")
+
+  // Security
+  isActive    Boolean  @default(true)
+  lastLogin   DateTime?
+
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
-  buses  Bus[]
-  routes Route[]
-  trips  Trip[]
-  staff  Staff[]
-
+  // Relations
+  buses        Bus[]
+  routes       Route[]
+  trips        Trip[]
+  staff        Staff[]
   transactions Transaction[]
   bookings     Booking[]
 }
+
+
 
 model Bus {
   id         String    @id @default(uuid())
