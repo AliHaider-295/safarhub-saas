@@ -29,10 +29,18 @@ function safeUser(user) {
   return {
     id: user.id,
     companyName: user.companyName,
+    fullName: user.fullName,
     email: user.email,
+    role: user.role,
+    avatar: user.avatar,
+    phone: user.phone,
     createdAt: user.createdAt,
   };
+  if (!user.isActive) {
+    return fail(res, 403, "Account disabled");
+  }
 }
+
 
 function getAuthErrorResponse(error) {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -91,14 +99,26 @@ async function login(req, res) {
 
     const { email, password } = parsed.data;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
     if (!user) return fail(res, 401, "Invalid credentials");
+
+    // ✅ ADD HERE (NOT OUTSIDE)
+    if (!user.isActive) {
+      return fail(res, 403, "Account disabled");
+    }
 
     const matches = await bcrypt.compare(password, user.password);
     if (!matches) return fail(res, 401, "Invalid credentials");
 
     const token = signToken(user);
-    return ok(res, "Login successful", { token, data: safeUser(user) });
+
+    return ok(res, "Login successful", {
+      token,
+      data: safeUser(user),
+    });
   } catch (error) {
     console.error("[AUTH][LOGIN]", error);
     const authError = getAuthErrorResponse(error);

@@ -26,7 +26,7 @@ import {
           />
   
           <h2 className="text-3xl font-bold mt-5 text-gray-900">
-            {profile.fullName || "Admin User"}
+          {profile.fullName ?? "-"}
           </h2>
   
           <span className="bg-blue-100 text-blue-700 text-sm font-medium px-4 py-1 rounded-lg mt-3">
@@ -41,10 +41,7 @@ import {
   
             <div className="flex items-center gap-4 text-gray-700 text-sm">
               <Phone size={18} />
-              <span>
-                {profile.phone ||
-                  "+92 300 1234567"}
-              </span>
+              <span>{profile?.phone ?? "Not set"}</span>
             </div>
   
             <div className="flex items-center gap-4 text-gray-700 text-sm">

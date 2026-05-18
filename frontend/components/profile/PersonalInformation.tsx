@@ -34,10 +34,7 @@ export default function PersonalInformation({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
         <Item
           label="Full Name"
-          value={
-            profile?.fullName ||
-            "Admin User"
-          }
+          value={profile?.fullName ?? "-"}
         />
 
         <Item
@@ -60,18 +57,12 @@ export default function PersonalInformation({
 
         <Item
           label="Phone"
-          value={
-            profile?.phone ||
-            "+92 300 1234567"
-          }
+          value={profile?.phone || "Not set"}
         />
 
         <Item
           label="Address"
-          value={
-            profile?.address ||
-            "Lahore, Pakistan"
-          }
+          value={profile?.address || "Not set"}
         />
 
         <Item

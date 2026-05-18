@@ -1,10 +1,33 @@
 import { Profile } from "@/types/profile";
 
-const BASE_URL =
-  "http://localhost:5000/api";
+const BASE_URL = "http://localhost:5000/api";
 
-interface AuthFetchOptions
-  extends RequestInit {
+/* ======================================================
+   TOKEN HELPERS
+====================================================== */
+
+const getToken = () => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("safarhub_token");
+};
+
+export const setToken = (token: string) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("safarhub_token", token);
+  }
+};
+
+export const removeToken = () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("safarhub_token");
+  }
+};
+
+/* ======================================================
+   AUTH FETCH (AUTO TOKEN ATTACH)
+====================================================== */
+
+interface AuthFetchOptions extends RequestInit {
   headers?: HeadersInit;
 }
 
@@ -12,102 +35,83 @@ export const authFetch = async (
   url: string,
   options: AuthFetchOptions = {}
 ) => {
-  const token =
-    localStorage.getItem(
-      "safarhub_token"
-    );
-
-    console.log("TOKEN:", token);
+  const token = getToken();
 
   const headers: HeadersInit = {
-    "Content-Type":
-      "application/json",
-    ...options.headers,
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
   };
 
   if (token) {
-    (
-      headers as Record<
-        string,
-        string
-      >
-    ).Authorization = `Bearer ${token}`;
+    (headers as Record<string, string>).Authorization =
+      `Bearer ${token}`;
   }
 
+  console.log("TOKEN:", token);
   console.log("HEADERS:", headers);
 
-  return fetch(`${BASE_URL}${url}`, {
+  const res = await fetch(`${BASE_URL}${url}`, {
     ...options,
     headers,
   });
+
+  return res;
 };
 
-// ================================
-// PROFILE APIs
-// ================================
+/* ======================================================
+   PROFILE APIs
+====================================================== */
 
-// GET PROFILE
+// ✅ GET PROFILE
 export const getProfile = async (): Promise<Profile> => {
   const res = await authFetch("/profile");
 
   const result = await res.json();
 
   if (!res.ok) {
-    throw new Error(result.message || "Failed to fetch profile");
+    throw new Error(
+      result.message || "Failed to fetch profile"
+    );
   }
 
   return result.data;
 };
 
-// UPDATE PROFILE
-export const updateProfile =
-  async (
-    data: Partial<Profile>
-  ): Promise<Profile> => {
-    const res = await authFetch(
-      "/profile",
-      {
-        method: "PUT",
-        body: JSON.stringify(data),
-      }
+// ✅ UPDATE PROFILE
+export const updateProfile = async (data: any) => {
+  const res = await authFetch("/profile/update", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      result.message || "Profile update failed"
     );
+  }
 
-    if (!res.ok) {
-      const errorData =
-        await res.json();
+  return result;
+};
 
-      throw new Error(
-        errorData.message ||
-          "Failed to update profile"
-      );
-    }
+// ✅ CHANGE PASSWORD
+export const changePassword = async (data: {
+  currentPassword: string;
+  newPassword: string;
+}) => {
+  const res = await authFetch("/profile/change-password", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
 
-    return res.json();
-  };
+  const result = await res.json();
 
-// CHANGE PASSWORD
-export const changePassword =
-  async (data: {
-    currentPassword: string;
-    newPassword: string;
-  }) => {
-    const res = await authFetch(
-      "/profile/change-password",
-      {
-        method: "PUT",
-        body: JSON.stringify(data),
-      }
+  if (!res.ok) {
+    throw new Error(
+      result.message || "Failed to change password"
     );
+  }
 
-    if (!res.ok) {
-      const errorData =
-        await res.json();
-
-      throw new Error(
-        errorData.message ||
-          "Failed to change password"
-      );
-    }
-
-    return res.json();
-  };
+  return result;
+};

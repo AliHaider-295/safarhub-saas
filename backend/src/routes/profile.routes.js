@@ -32,7 +32,7 @@ router.get(
 router.put(
   "/update",
   protect,
-  allowRoles("ADMIN", "MANAGER", "STAFF"),
+  allowRoles("ADMIN", "MANAGER", "STAFF", "USER"),
   updateProfile
 );
 

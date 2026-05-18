@@ -17,6 +17,8 @@ const getProfile = async (req, res) => {
         fullName: true,
         email: true,
         role: true,
+        phone : true,
+        address: true,   // ✅ MUST EXIST
         createdAt: true
       }
     });
@@ -51,6 +53,7 @@ UPDATE PROFILE
 ------------------------------------------------
 */
 const updateProfile = async (req, res) => {
+  console.log("REQ BODY:", req.body);
   try {
     const userId = req.user.id;
 
@@ -67,13 +70,13 @@ const updateProfile = async (req, res) => {
       data: {
         fullName,
         phone,
-        gender,
         address,
-        dateOfBirth: dateOfBirth
-          ? new Date(dateOfBirth)
-          : undefined,
+        gender,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
       },
     });
+    
+    console.log("UPDATED USER:", updatedUser);
 
     delete updatedUser.password;
 
