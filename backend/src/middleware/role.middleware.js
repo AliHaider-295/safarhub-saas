@@ -1,5 +1,3 @@
-// src/middleware/role.middleware.js
-
 const allowRoles = (...roles) => {
     return (req, res, next) => {
       try {
@@ -9,7 +7,9 @@ const allowRoles = (...roles) => {
           });
         }
   
-        if (!roles.includes(req.user.role)) {
+        const userRole = req.user.role.toUpperCase();
+  
+        if (!roles.includes(userRole)) {
           return res.status(403).json({
             error: "Forbidden: insufficient permissions",
           });

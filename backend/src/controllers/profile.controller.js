@@ -12,22 +12,28 @@ const getProfile = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
         role: true,
-      },
+        createdAt: true
+      }
     });
 
-    if (!user)
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
+    }
 
-    delete user.password;
+    // ✅ safe destructuring
+    const { password, ...safeUser } = user;
 
     res.json({
       success: true,
-      data: user,
+      data: safeUser,
     });
   } catch (error) {
     console.error("Get Profile Error:", error);
@@ -243,5 +249,6 @@ module.exports = {
   changePassword,
   getRecentActivity,
   getLoggedDevices,
+  toggle2FA,
   deleteProfile,
 };

@@ -19,42 +19,57 @@ const { allowRoles } = require("../middleware/role.middleware");
 PROFILE ROUTES
 -----------------------------------------
 */
-// Only logged-in users
+
+// GET PROFILE
 router.get(
   "/",
   protect,
-  allowRoles("ADMIN", "MANAGER", "STAFF"),
+  allowRoles("ADMIN", "MANAGER", "STAFF", "USER"),
+  getProfile
 );
 
+// UPDATE PROFILE
 router.put(
   "/update",
   protect,
   allowRoles("ADMIN", "MANAGER", "STAFF"),
+  updateProfile
 );
 
+// CHANGE PASSWORD
 router.put(
   "/change-password",
   protect,
+  changePassword
 );
 
+// RECENT ACTIVITY
 router.get(
   "/activity",
   protect,
+  getRecentActivity
 );
 
+// LOGGED DEVICES
 router.get(
   "/devices",
   protect,
+  getLoggedDevices
 );
 
+// TOGGLE 2FA
 router.put(
   "/2fa",
   protect,
+  toggle2FA
 );
+
+// DELETE PROFILE
 router.delete(
   "/",
   protect,
-  allowRoles("ADMIN", "USER")
+  allowRoles("ADMIN", "USER"),
+  deleteProfile
 );
 
 module.exports = router;
