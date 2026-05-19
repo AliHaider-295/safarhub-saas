@@ -95,6 +95,27 @@ export const updateProfile = async (data: any) => {
   return result;
 };
 
+
+/* ======================================================
+   CREATE PROFILE
+====================================================== */
+
+export const createProfile = async (data: any) => {
+  const res = await authFetch("/profile/create", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      result.message || "Profile creation failed"
+    );
+  }
+
+  return result;
+};
 // ✅ CHANGE PASSWORD
 export const changePassword = async (data: {
   currentPassword: string;

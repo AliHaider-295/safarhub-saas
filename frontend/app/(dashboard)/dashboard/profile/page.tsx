@@ -10,15 +10,16 @@ import ActivitySummary from "@/components/profile/ActivitySummary";
 import RecentActivity from "@/components/profile/RecentActivity";
 import PermissionsOverview from "@/components/profile/PermissionsOverview";
 import EditProfileModal from "@/components/profile/EditProfileModal";
+import CreateProfileModal from "@/components/profile/CreateProfileModal";
 
-import { getProfile, updateProfile } from "@/lib/api";
+import { getProfile, updateProfile, createProfile } from "@/lib/api";
 import { Profile } from "@/types/profile";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [openEdit, setOpenEdit] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [openCreate, setOpenCreate] = useState(false);
   // =============================
   // FETCH PROFILE
   // =============================
@@ -39,6 +40,23 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
+
+
+  // create profile handler
+
+  const handleCreateProfile = async (
+    formData: Partial<Profile>
+  ) => {
+    try {
+      const res = await createProfile(formData);
+  
+      setProfile(res.data);
+  
+      setOpenCreate(false);
+    } catch (error) {
+      console.error("Create profile failed", error);
+    }
+  };
   // =============================
   // UPDATE PROFILE
   // =============================
@@ -74,6 +92,10 @@ export default function ProfilePage() {
     <div className="p-4 md:p-6 bg-[#f5f7fb] min-h-screen">
       <ProfileHeader />
 
+      <button onClick={() => setOpenCreate(true)}>
+  Create Profile
+</button>
+
       {/* Edit Button */}
       <button onClick={() => setOpenEdit(true)}>
         Edit Profile
@@ -85,7 +107,11 @@ export default function ProfilePage() {
         profile={profile}
         onSubmit={handleUpdateProfile}
       />
-
+<CreateProfileModal
+  open={openCreate}
+  onClose={() => setOpenCreate(false)}
+  onSubmit={handleCreateProfile}
+/>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6">
         <ProfileSidebar profile={profile} />
 

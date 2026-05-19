@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
+  createProfile,
   getProfile,
   updateProfile,
   changePassword,
@@ -19,7 +20,12 @@ const { allowRoles } = require("../middleware/role.middleware");
 PROFILE ROUTES
 -----------------------------------------
 */
-
+router.post(
+  "/create",
+  protect,
+  allowRoles("ADMIN", "MANAGER", "STAFF", "USER"),
+  createProfile
+);
 // GET PROFILE
 router.get(
   "/",

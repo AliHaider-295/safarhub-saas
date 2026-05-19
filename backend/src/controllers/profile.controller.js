@@ -1,6 +1,52 @@
 const bcrypt = require("bcryptjs");
 const { prisma } = require("../db/prisma");
 
+
+
+
+// Create Profile 
+
+const createProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const {
+      fullName,
+      phone,
+      gender,
+      address,
+      dateOfBirth,
+      department,
+    } = req.body;
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        fullName,
+        phone,
+        gender,
+        address,
+        department,
+        dateOfBirth: dateOfBirth
+          ? new Date(dateOfBirth)
+          : null,
+
+        // ✅ system fields
+        isActive: true,
+        joinedAt: new Date(),
+      },
+    });
+
+    delete user.password;
+
+    res.json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
 /*
 ------------------------------------------------
 GET PROFILE
@@ -247,6 +293,7 @@ const deleteProfile = async (req, res) => {
 };
 
 module.exports = {
+  createProfile,
   getProfile,
   updateProfile,
   changePassword,

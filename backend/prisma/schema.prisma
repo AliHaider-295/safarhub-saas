@@ -40,6 +40,12 @@ model User {
   phone       String?
   address     String?
   avatar      String?
+
+  gender      String?      // ✅ ADD
+  department  String?      // ✅ ADD
+  dateOfBirth DateTime?    // ✅ ADD
+  joinedAt    DateTime?    // ✅ ADD
+
   role        String   @default("admin")
 
   // Security
@@ -47,7 +53,7 @@ model User {
   lastLogin   DateTime?
 
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
+  updatedAt   DateTime @updatedAt
 
   // Relations
   buses        Bus[]
@@ -57,7 +63,6 @@ model User {
   transactions Transaction[]
   bookings     Booking[]
 }
-
 
 
 model Bus {

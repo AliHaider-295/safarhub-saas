@@ -7,24 +7,31 @@ const Item = ({
   value,
 }: {
   label: string;
-  value: string;
+  value?: string | null;
 }) => {
   return (
     <div>
-      <p className="text-sm text-gray-500 mb-2">
-        {label}
-      </p>
+      <p className="text-sm text-gray-500 mb-2">{label}</p>
 
       <h4 className="text-[15px] font-medium text-gray-800">
-        {value}
+        {value || "Not set"}
       </h4>
     </div>
   );
 };
 
-export default function PersonalInformation({
-  profile,
-}: Props) {
+// ✅ DATE FORMATTER
+const formatDate = (date?: string) => {
+  if (!date) return "Not set";
+
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+export default function PersonalInformation({ profile }: Props) {
   return (
     <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 h-full">
       <h2 className="text-2xl font-semibold text-gray-900 mb-8">
@@ -32,61 +39,47 @@ export default function PersonalInformation({
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
-        <Item
-          label="Full Name"
-          value={profile?.fullName ?? "-"}
-        />
 
-        <Item
-          label="Role"
-          value={
-            profile?.role ||
-            "Administrator"
-          }
-        />
+        <Item label="Full Name" value={profile?.fullName} />
 
-        <Item
-          label="Email"
-          value={profile?.email || "-"}
-        />
+        <Item label="Role" value={profile?.role} />
 
-        <Item
-          label="Department"
-          value="Management"
-        />
+        <Item label="Email" value={profile?.email} />
 
-        <Item
-          label="Phone"
-          value={profile?.phone || "Not set"}
-        />
+        {/* ✅ NOW DYNAMIC */}
+        <Item label="Department" value={profile?.department} />
 
-        <Item
-          label="Address"
-          value={profile?.address || "Not set"}
-        />
+        <Item label="Phone" value={profile?.phone} />
 
+        <Item label="Address" value={profile?.address} />
+
+        {/* ✅ DATE OF BIRTH */}
         <Item
           label="Date Of Birth"
-          value="15 April 1995"
+          value={formatDate(profile?.dateOfBirth)}
         />
 
+        {/* ✅ JOINED DATE */}
         <Item
           label="Joined On"
-          value="20 May 2024"
+          value={formatDate(profile?.joinedAt)}
         />
 
-        <Item
-          label="Gender"
-          value="Male"
-        />
+        {/* ✅ GENDER */}
+        <Item label="Gender" value={profile?.gender} />
 
+        {/* ✅ STATUS */}
         <div>
-          <p className="text-sm text-gray-500 mb-2">
-            Status
-          </p>
+          <p className="text-sm text-gray-500 mb-2">Status</p>
 
-          <span className="bg-green-100 text-green-700 px-4 py-1 rounded-lg text-sm font-medium">
-            Active
+          <span
+            className={`px-4 py-1 rounded-lg text-sm font-medium ${
+              profile?.isActive
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {profile?.isActive ? "Active" : "Inactive"}
           </span>
         </div>
       </div>
